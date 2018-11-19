@@ -81,7 +81,6 @@ parser MyParser(packet_in packet,
             TYPE_IPV4 : parse_ipv4;
             default : accept;
         }
-        transition accept;
     }
 
     state parse_ipv4 {
