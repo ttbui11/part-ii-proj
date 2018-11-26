@@ -1,0 +1,147 @@
+Calling target program-options parser
+Adding interface s1-eth1 as port 1
+[18:34:03.872] [bmv2] [D] [thread 4438] Adding interface s1-eth1 as port 1
+Adding interface s1-eth2 as port 2
+[18:34:03.896] [bmv2] [D] [thread 4438] Adding interface s1-eth2 as port 2
+Adding interface s1-eth3 as port 3
+[18:34:03.916] [bmv2] [D] [thread 4438] Adding interface s1-eth3 as port 3
+I1126 18:34:03.940488592    4438 server_builder.cc:247]      Synchronous server. Num CQs: 1, Min pollers: 1, Max Pollers: 2147483647, CQ timeout (msec): 1000
+Server listening on 0.0.0.0:50051
+Thrift server was started
+New connection
+P4Runtime SetForwardingPipelineConfig
+[18:34:06.562] [bmv2] [D] [thread 4505] Set default default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
+P4Runtime Write
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 33574068
+      action {
+        action {
+          action_id: 16805608
+        }
+      }
+      is_default_action: true
+    }
+  }
+}
+[18:34:06.570] [bmv2] [D] [thread 4505] Set default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
+P4Runtime Write
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 33574068
+      match {
+        field_id: 1
+        lpm {
+          value: "\n\000\001\001"
+          prefix_len: 32
+        }
+      }
+      action {
+        action {
+          action_id: 16799317
+          params {
+            param_id: 1
+            value: "\000\000\000\000\001\001"
+          }
+          params {
+            param_id: 2
+            value: "\000\001"
+          }
+        }
+      }
+    }
+  }
+}
+[18:34:06.574] [bmv2] [D] [thread 4505] Entry 0 added to table 'MyIngress.ipv4_lpm'
+[18:34:06.574] [bmv2] [D] [thread 4505] Dumping entry 0
+Match key:
+* hdr.ipv4.dstAddr    : LPM       0a000101/32
+Action entry: MyIngress.ipv4_forward - 101,1,
+
+P4Runtime Write
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 33574068
+      match {
+        field_id: 1
+        lpm {
+          value: "\n\000\002\002"
+          prefix_len: 32
+        }
+      }
+      action {
+        action {
+          action_id: 16799317
+          params {
+            param_id: 1
+            value: "\000\000\000\002\002\000"
+          }
+          params {
+            param_id: 2
+            value: "\000\002"
+          }
+        }
+      }
+    }
+  }
+}
+[18:34:06.577] [bmv2] [D] [thread 4505] Entry 1 added to table 'MyIngress.ipv4_lpm'
+[18:34:06.577] [bmv2] [D] [thread 4505] Dumping entry 1
+Match key:
+* hdr.ipv4.dstAddr    : LPM       0a000202/32
+Action entry: MyIngress.ipv4_forward - 20200,2,
+
+P4Runtime Write
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 33574068
+      match {
+        field_id: 1
+        lpm {
+          value: "\n\000\003\003"
+          prefix_len: 32
+        }
+      }
+      action {
+        action {
+          action_id: 16799317
+          params {
+            param_id: 1
+            value: "\000\000\000\003\003\000"
+          }
+          params {
+            param_id: 2
+            value: "\000\003"
+          }
+        }
+      }
+    }
+  }
+}
+[18:34:06.579] [bmv2] [D] [thread 4505] Entry 2 added to table 'MyIngress.ipv4_lpm'
+[18:34:06.579] [bmv2] [D] [thread 4505] Dumping entry 2
+Match key:
+* hdr.ipv4.dstAddr    : LPM       0a000303/32
+Action entry: MyIngress.ipv4_forward - 30300,3,
+
+open: No such file or directory

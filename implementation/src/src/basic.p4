@@ -41,7 +41,7 @@ header tcp {
     dstPort_t   dstPort;
     bit<32>   seqNo;
     bit<32>   ack;
-    bit<4>    dataOffset;
+    bit<4>    dataOffset;
     bit<3>    reserved;
     bit<9>    flags;
     bit<16>   windowSize;
@@ -56,7 +56,6 @@ struct metadata {
 struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
-    tcp_t        tcp;
 }
 
 /*************************************************************************
@@ -71,21 +70,21 @@ parser MyParser(packet_in packet,
     state start {
         transition parse_ethernet;
     }
-
+    
     state parse_ethernet {
-        packet.extract(hdr.ethernet);
-        transition select(hdr.ethernet.etherType) {
-            TYPE_IPV4: parse_ipv4;
-            default: accept;
-        }
+    	packet.extract(hdr.ethernet);
+    	transition select(hdr.ethernet.etherType) {
+    		TYPE_IPV4: parse_ipv4;
+    		default: accept;
+    	}
     }
 
     state parse_ipv4 {
-        packet.extract(hdr.ipv4);
-        transition accept;
+    	packet.extract(hdr.ipv4);
+    	transition accept;
     }
-
 }
+
 
 /*************************************************************************
 ************   C H E C K S U M    V E R I F I C A T I O N   *************
@@ -111,7 +110,7 @@ control MyIngress(inout headers hdr,
         standard_metadata.egress_spec = port;
         hdr.ethernet.srcAddr = hdr.ethernet.dstAddr;
         hdr.ethernet.dstAddr = dstAddr;
-        hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
+        hdr.ipv4.ttl = hdr.ipv4.ttl -1 ;
     }
     
     table ipv4_lpm {
@@ -128,9 +127,13 @@ control MyIngress(inout headers hdr,
     }
     
     apply {
+        /* TODO: fix ingress control logic
+         *  - ipv4_lpm should be applied only when IPv4 header is valid
+         */
         if (hdr.ipv4.isValid()) {
-            ipv4_lpm.apply();
+      		ipv4_lpm.apply();
         }
+ 
     }
 }
 
@@ -148,7 +151,7 @@ control MyEgress(inout headers hdr,
 *************   C H E C K S U M    C O M P U T A T I O N   **************
 *************************************************************************/
 
-control MyComputeChecksum(inout headers  hdr, inout metadata meta) {
+control MyComputeChecksum(inout headers hdr, inout metadata meta) {
      apply {
 	update_checksum(
 	    hdr.ipv4.isValid(),
@@ -168,14 +171,16 @@ control MyComputeChecksum(inout headers  hdr, inout metadata meta) {
     }
 }
 
+
 /*************************************************************************
 ***********************  D E P A R S E R  *******************************
 *************************************************************************/
 
 control MyDeparser(packet_out packet, in headers hdr) {
     apply {
-        packet.emit(hdr.ethernet);
-        packet.emit(hdr.ipv4);
+        /* TODO: add deparser logic */
+		packet.emit(hdr.ethernet);
+		packet.emit(hdr.ipv4);	
     }
 }
 
