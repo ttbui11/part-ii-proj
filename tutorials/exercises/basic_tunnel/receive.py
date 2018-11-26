@@ -16,7 +16,7 @@ def get_if():
     for i in get_if_list():
         if "eth0" in i:
             iface=i
-            break;
+            break
     if not iface:
         print "Cannot find eth0 interface"
         exit(1)
@@ -26,8 +26,8 @@ def handle_pkt(pkt):
     if MyTunnel in pkt or (TCP in pkt and pkt[TCP].dport == 1234):
         print "got a packet"
         pkt.show2()
-#        hexdump(pkt)
-#        print "len(pkt) = ", len(pkt)
+#       hexdump(pkt)
+#       print "len(pkt) = ", len(pkt)
         sys.stdout.flush()
 
 
