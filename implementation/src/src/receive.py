@@ -33,30 +33,34 @@ class IPOption_MRI(IPOption):
                                    [],
                                    IntField("", 0),
                                    length_from=lambda pkt:pkt.count*4) ]
-def handle_pkt(pkt):
-    if pkt_count == N:
-        pkt_count = 0
+def handle_pkt(pkt, pkt_count):
+    if pkt_count.get(pkt[TCP].dport, 0) == 10:
+	pkt_count[pkt[TCP].dport] = 0
     else:
-        if TCP in pkt and pkt[TCP].dport == 1234:
-            print "got a packet. pkt_count =%d" % pkt_count
+    	if TCP in pkt and pkt[TCP].dport == 1234:
+            if pkt[TCP].dport not in pkt_count:
+                 pkt_count[pkt[TCP].dport] = 1            
+            print "got a packet. pkt_count = %d" % pkt_count[pkt[TCP].dport]
             pkt.show2()
-        #    hexdump(pkt)
+       #    hexdump(pkt)
             sys.stdout.flush()
-            pkt_count += 1
-
-
+            pkt_count[pkt[TCP].dport] += 1
 
 def main():
     ifaces = filter(lambda i: 'eth' in i, os.listdir('/sys/class/net/'))
     iface = ifaces[0]
     print "sniffing on %s" % iface
     sys.stdout.flush()
+<<<<<<< HEAD
     
     pkt_count = 0
     N = 10  
     
+=======
+    pkt_count = dict()
+>>>>>>> 12682a5f2b83833eab80aed8df1bb207ca88de41
     sniff(iface = iface,
-          prn = lambda x: handle_pkt(x))
+        prn = lambda x: handle_pkt(x, pkt_count))
 
 if __name__ == '__main__':
     main()

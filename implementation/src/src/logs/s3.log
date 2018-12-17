@@ -1,16 +1,16 @@
 Calling target program-options parser
 Adding interface s3-eth1 as port 1
-[18:34:04.908] [bmv2] [D] [thread 4446] Adding interface s3-eth1 as port 1
+[21:02:18.060] [bmv2] [D] [thread 13722] Adding interface s3-eth1 as port 1
 Adding interface s3-eth2 as port 2
-[18:34:04.940] [bmv2] [D] [thread 4446] Adding interface s3-eth2 as port 2
+[21:02:18.083] [bmv2] [D] [thread 13722] Adding interface s3-eth2 as port 2
 Adding interface s3-eth3 as port 3
-[18:34:04.960] [bmv2] [D] [thread 4446] Adding interface s3-eth3 as port 3
-I1126 18:34:04.996389405    4446 server_builder.cc:247]      Synchronous server. Num CQs: 1, Min pollers: 1, Max Pollers: 2147483647, CQ timeout (msec): 1000
+[21:02:18.116] [bmv2] [D] [thread 13722] Adding interface s3-eth3 as port 3
+I1126 21:02:18.187831813   13722 server_builder.cc:247]      Synchronous server. Num CQs: 1, Min pollers: 1, Max Pollers: 2147483647, CQ timeout (msec): 1000
 Server listening on 0.0.0.0:50053
 Thrift server was started
 New connection
 P4Runtime SetForwardingPipelineConfig
-[18:34:06.516] [bmv2] [D] [thread 4478] Set default default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
+[21:02:19.658] [bmv2] [D] [thread 13759] Set default default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
 P4Runtime Write
 device_id: 2
 election_id {
@@ -30,7 +30,7 @@ updates {
     }
   }
 }
-[18:34:06.525] [bmv2] [D] [thread 4478] Set default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
+[21:02:19.661] [bmv2] [D] [thread 13759] Set default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
 P4Runtime Write
 device_id: 2
 election_id {
@@ -64,8 +64,8 @@ updates {
     }
   }
 }
-[18:34:06.528] [bmv2] [D] [thread 4478] Entry 0 added to table 'MyIngress.ipv4_lpm'
-[18:34:06.528] [bmv2] [D] [thread 4478] Dumping entry 0
+[21:02:19.663] [bmv2] [D] [thread 13759] Entry 0 added to table 'MyIngress.ipv4_lpm'
+[21:02:19.663] [bmv2] [D] [thread 13759] Dumping entry 0
 Match key:
 * hdr.ipv4.dstAddr    : LPM       0a000101/32
 Action entry: MyIngress.ipv4_forward - 10300,2,
@@ -103,8 +103,8 @@ updates {
     }
   }
 }
-[18:34:06.529] [bmv2] [D] [thread 4478] Entry 1 added to table 'MyIngress.ipv4_lpm'
-[18:34:06.529] [bmv2] [D] [thread 4478] Dumping entry 1
+[21:02:19.665] [bmv2] [D] [thread 13759] Entry 1 added to table 'MyIngress.ipv4_lpm'
+[21:02:19.665] [bmv2] [D] [thread 13759] Dumping entry 1
 Match key:
 * hdr.ipv4.dstAddr    : LPM       0a000202/32
 Action entry: MyIngress.ipv4_forward - 20300,3,
@@ -142,12 +142,11 @@ updates {
     }
   }
 }
-[18:34:06.531] [bmv2] [D] [thread 4478] Entry 2 added to table 'MyIngress.ipv4_lpm'
-[18:34:06.531] [bmv2] [D] [thread 4478] Dumping entry 2
+[21:02:19.666] [bmv2] [D] [thread 13759] Entry 2 added to table 'MyIngress.ipv4_lpm'
+[21:02:19.666] [bmv2] [D] [thread 13759] Dumping entry 2
 Match key:
 * hdr.ipv4.dstAddr    : LPM       0a000303/32
 Action entry: MyIngress.ipv4_forward - 303,1,
 
-open: No such file or directory
 open: No such file or directory
 open: No such file or directory
