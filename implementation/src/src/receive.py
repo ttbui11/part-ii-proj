@@ -9,9 +9,6 @@ from scapy.all import ShortField, IntField, LongField, BitField, FieldListField,
 from scapy.all import IP, TCP, UDP, Raw
 from scapy.layers.inet import _IPOption_HDR
 
-pkt_count = 0
-N = 10
-
 def get_if():
     ifs=get_if_list()
     iface=None
@@ -54,6 +51,10 @@ def main():
     iface = ifaces[0]
     print "sniffing on %s" % iface
     sys.stdout.flush()
+    
+    pkt_count = 0
+    N = 10  
+    
     sniff(iface = iface,
           prn = lambda x: handle_pkt(x))
 
