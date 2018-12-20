@@ -88,9 +88,9 @@ struct user_metadata_t {
     bit<8>  unused;
 }
 
-// digest_data, MUST be 256 bits
+// digest data, MUST be 256 bits
 struct digest_data_t {
-    bit<256> unused;
+    bit<256>  unused;
 }
 
 // Parser Implementation
@@ -119,7 +119,7 @@ parser TopParser(packet_in b,
 // match-action pipeline
 control TopPipe(inout Parsed_packet p,
                 inout user_metadata_t user_metadata, 
-                inout digest_data_t digest_data,
+                inout digest_data_t digest_data, 
                 inout sume_metadata_t sume_metadata) {
 
     action swap_eth_addresses() {
@@ -160,13 +160,13 @@ control TopPipe(inout Parsed_packet p,
         // based on the opCode, set the result or state appropriately
         if (p.calc.opCode == ADD_OP) {
             // TODO: addition
-            p.calc.result = p.calc.op1 + p.calc.op2;
+
         } else if (p.calc.opCode == SUB_OP) {
             // TODO: subtraction
-            p.calc.result = p.calc.op1 - p.calc.op2;
+
         } else if (p.calc.opCode == LOOKUP_OP) {
             // TODO: Key-Value lookup
-            lookup_table.apply(); 
+
         } else if (p.calc.opCode == ADD_REG_OP || p.calc.opCode == SET_REG_OP) {
             // Read or write register
  
@@ -202,7 +202,7 @@ control TopPipe(inout Parsed_packet p,
 control TopDeparser(packet_out b,
                     in Parsed_packet p,
                     in user_metadata_t user_metadata,
-                    inout digest_data_t digest_data,
+                    inout digest_data_t digest_data, 
                     inout sume_metadata_t sume_metadata) { 
     apply {
         b.emit(p.ethernet); 
