@@ -38,6 +38,8 @@
 
 typedef bit<48> EthAddr_t; 
 typedef bit<32> IPv4Addr_t;
+typedef bit<16> srcPort_t;
+typedef bit<16> dstPort_t;
 
 #define IPV4_TYPE 0x0800
 
@@ -64,11 +66,25 @@ header IPv4_h {
     IPv4Addr_t dstAddr;
 }
 
+header TCP_h {
+    srcPort_t   srcPort;
+    dstPort_t   dstPort;
+    bit<32>   seqNo;
+    bit<32>   ack;
+    bit<4>    dataOffset;
+    bit<3>    reserved;
+    bit<9>    flags;
+    bit<16>   windowSize;
+    bit<16>   hdrChecksum;
+    bit<16>   urgPointer;
+}
+
 
 // List of all recognized headers
 struct Parsed_packet { 
     Ethernet_h ethernet; 
     IPv4_h ip;
+    TCP_h tcp;
 }
 
 // user defined metadata: can be used to shared information between
@@ -101,7 +117,12 @@ parser TopParser(packet_in b,
 
     state parse_ipv4 { 
         b.extract(p.ip);
-        transition accept; 
+        transition parse_tcp; 
+    }
+
+    state parse_tcp {
+        b.extract(p.tcp);
+        transition accept;
     }
 }
 
@@ -111,10 +132,23 @@ control TopPipe(inout Parsed_packet p,
                 inout digest_data_t digest_data, 
                 inout sume_metadata_t sume_metadata) {
 
+    action test() {
 
+    }
+
+    table lookup_table {
+        key = { p.calc.op1: exact; }
+
+        actions = {
+            set_result;
+            set_result_default;
+        }
+        size = 64;
+        default_action = set_result_default;
+    }
 
     apply {
-
+        
     }
 }
 
@@ -128,6 +162,7 @@ control TopDeparser(packet_out b,
     apply {
         b.emit(p.ethernet); 
         b.emit(p.ip);
+        b.emit(p.tcp);
     }
 }
 
