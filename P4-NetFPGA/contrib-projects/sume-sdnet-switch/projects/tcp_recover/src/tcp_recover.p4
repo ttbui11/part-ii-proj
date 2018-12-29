@@ -38,10 +38,44 @@
 
 typedef bit<48> EthAddr_t; 
 typedef bit<32> IPv4Addr_t;
-typedef bit<16> srcPort_t;
-typedef bit<16> dstPort_t;
 
 #define IPV4_TYPE 0x0800
+#define TCP_TYPE 6
+
+#define SYN_MASK 8w0b0000_0010
+#define SYN_POS 1
+
+#define FIN_MASK 8w0b0000_0001
+#define FIN_POS 0
+
+#define REG_READ   8w0
+#define REG_WRITE  8w1
+#define REG_ADD    8w2
+
+
+#define HASH_WIDTH 5
+// hash function
+@Xilinx_MaxLatency(1)
+@Xilinx_ControlWidth(0)
+extern void hash_lrc(in bit<104> in_data, out bit<HASH_WIDTH> result);
+
+// byte_cnt register
+@Xilinx_MaxLatency(64)
+@Xilinx_ControlWidth(HASH_WIDTH)
+extern void byte_cnt_reg_raw(in bit<HASH_WIDTH> index,
+                             in bit<32> newVal,
+                             in bit<32> incVal,
+                             in bit<8> opCode,
+                             out bit<32> result);
+
+// dist register
+@Xilinx_MaxLatency(64)
+@Xilinx_ControlWidth(3)
+extern void dist_reg_raw(in bit<3> index,
+                         in bit<32> newVal,
+                         in bit<32> incVal,
+                         in bit<8> opCode,
+                         out bit<32> result);
 
 // standard Ethernet header
 header Ethernet_h { 
@@ -66,17 +100,18 @@ header IPv4_h {
     IPv4Addr_t dstAddr;
 }
 
+// TCP header without options
 header TCP_h {
-    srcPort_t   srcPort;
-    dstPort_t   dstPort;
-    bit<32>   seqNo;
-    bit<32>   ack;
-    bit<4>    dataOffset;
-    bit<3>    reserved;
-    bit<9>    flags;
-    bit<16>   windowSize;
-    bit<16>   hdrChecksum;
-    bit<16>   urgPointer;
+    bit<16> srcPort;
+    bit<16> dstPort;
+    bit<32> seqNo;
+    bit<32> ackNo;
+    bit<4> dataOffset;
+    bit<4> res;
+    bit<8> flags;
+    bit<16> window;
+    bit<16> checksum;
+    bit<16> urgentPtr;
 }
 
 
@@ -115,9 +150,12 @@ parser TopParser(packet_in b,
         } 
     }
 
-    state parse_ipv4 { 
+    state parse_ipv4 {
         b.extract(p.ip);
-        transition parse_tcp; 
+        transition select(p.ip.protocol) {
+            TCP_TYPE: parse_tcp;
+            default: reject;
+        }
     }
 
     state parse_tcp {
@@ -132,20 +170,12 @@ control TopPipe(inout Parsed_packet p,
                 inout digest_data_t digest_data, 
                 inout sume_metadata_t sume_metadata) {
 
-    action test() {
-
+    action set_output_port(port_t port) {
+        sume_metadata.dst_port = port;
     }
 
-    table lookup_table {
-        key = { p.calc.op1: exact; }
+    action nop() {}
 
-        actions = {
-            set_result;
-            set_result_default;
-        }
-        size = 64;
-        default_action = set_result_default;
-    }
 
     apply {
         
