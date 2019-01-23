@@ -177,6 +177,9 @@ control TopPipe(inout Parsed_packet p,
     action nop() {}
 
 
+    // compute hash of 5-tuple to obtain index for byte_cnt register
+    hash_lrc(p.ip.srcAddr++p.ip.dstAddr++p.ip.protocol++p.tcp.srcPort++p.tcp.dstPort, hash_result); 
+
     apply {
         
     }
