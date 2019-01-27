@@ -28,7 +28,7 @@
 # @NETFPGA_LICENSE_HEADER_END@
 
 all: clean
-	vivado -mode batch -source sss_output_queues.tcl
+	vivado -mode batch -source sss_cache_queues.tcl
 
 clean:
 	rm -rf ip_*  vivado*.* *.xml xgui/ .Xil* *.*~ *.zip hdl/axi_lite_ipif/

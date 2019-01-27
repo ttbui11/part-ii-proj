@@ -33,13 +33,13 @@
 //
 /*******************************************************************************
  *  File:
- *        sss_output_queues.v
+ *        sss_cache_queues.v
  *
  *  Library:
- *        hw/std/cores/sss_output_queues.v
+ *        hw/std/cores/sss_cache_queues.v
  *
  *  Module:
- *        sss_output_queues.v
+ *        sss_cache_queues.v
  *
  *  Author:
  *        Adam Covington
@@ -47,19 +47,19 @@
  *        Modified by Stephen Ibanez
  * 		
  *  Description:
- *        BRAM Output queues
+ *        BRAM Cache queues
  *        Outputs have a parameterizable width
  *
- *        This is a modified version of the original netfpga output_queues module.
+ *        This is a modified version of the original netfpga cache_queues module.
  *        s_axis_tready = 0 until s_axis_tvalid is asserted. 
  *
  */
 
 `ifndef COCOTB_SIM
-`include "sss_output_queues_cpu_regs_defines.v"
+`include "sss_cache_queues_cpu_regs_defines.v"
 `endif
 
-module sss_output_queues
+module sss_cache_queues
 #(
     // Master AXI Stream Data Width
     parameter C_M_AXIS_DATA_WIDTH=256,
@@ -362,7 +362,7 @@ module sss_output_queues
 
    generate
    genvar i;
-   for(i=0; i<NUM_QUEUES; i=i+1) begin: sss_output_queues
+   for(i=0; i<NUM_QUEUES; i=i+1) begin: sss_cache_queues
 
       /*
         If the dst_port field specifies that the pkt should be sent over DMA then 
@@ -635,12 +635,12 @@ module sss_output_queues
    assign bytes_removed_4          = bytes_removed[4];
 
 //Registers section
-sss_output_queues_cpu_regs 
+sss_cache_queues_cpu_regs 
  #(
      .C_BASE_ADDRESS        (C_BASEADDR),
      .C_S_AXI_DATA_WIDTH    (C_S_AXI_DATA_WIDTH),
      .C_S_AXI_ADDR_WIDTH    (C_S_AXI_ADDR_WIDTH)
- ) sss_output_queues_cpu_regs_inst
+ ) sss_cache_queues_cpu_regs_inst
  (   
    // General ports
     .clk                    (axis_aclk),
@@ -893,8 +893,8 @@ always @(posedge axis_aclk)
 
 `ifdef COCOTB_SIM
 initial begin
-  $dumpfile ("sss_output_queues_waveform.vcd");
-  $dumpvars (0,sss_output_queues);
+  $dumpfile ("sss_cache_queues_waveform.vcd");
+  $dumpvars (0,sss_cache_queues);
   #1 $display("Sim running...");
 end
 `endif

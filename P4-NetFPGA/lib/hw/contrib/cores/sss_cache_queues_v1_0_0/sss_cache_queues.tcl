@@ -30,8 +30,8 @@
 
 # Vivado Launch Script
 #### Change design settings here #######
-set design sss_output_queues
-set top sss_output_queues
+set design sss_cache_queues
+set top sss_cache_queues
 set device xc7vx690t-3-ffg1761
 set proj_dir ./ip_proj
 set ip_version 1.00
@@ -47,14 +47,14 @@ create_project -name ${design} -force -dir "./${proj_dir}" -part ${device} -ip
 set_property source_mgmt_mode All [current_project]  
 set_property top ${top} [current_fileset]
 set_property ip_repo_paths $::env(SUME_FOLDER)/lib/hw/  [current_fileset]
-puts "Creating Output Queues IP"
+puts "Creating Cache Queues IP"
 # Project Constraints
 #####################################
 # Project Structure & IP Build
 #####################################
-read_verilog "./hdl/sss_output_queues_cpu_regs_defines.v"
-read_verilog "./hdl/sss_output_queues_cpu_regs.v"
-read_verilog "./hdl/sss_output_queues.v"
+read_verilog "./hdl/sss_cache_queues_cpu_regs_defines.v"
+read_verilog "./hdl/sss_cache_queues_cpu_regs.v"
+read_verilog "./hdl/sss_cache_queues.v"
 
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
