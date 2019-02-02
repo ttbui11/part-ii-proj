@@ -42,7 +42,7 @@
 
 
 module nf_datapath #(
-    //Slave AXI parameters
+    // Slave AXI parameters
     parameter C_S_AXI_DATA_WIDTH    = 32,          
     parameter C_S_AXI_ADDR_WIDTH    = 32,          
      parameter C_BASEADDR            = 32'h00000000,
@@ -56,10 +56,10 @@ module nf_datapath #(
     parameter DIGEST_WIDTH =80
 )
 (
-    //Datapath clock
+    // Datapath clock
     input                                     axis_aclk,
     input                                     axis_resetn,
-    //Registers clock
+    // Registers clock
     input                                     axi_aclk,
     input                                     axi_resetn,
 
@@ -189,7 +189,7 @@ module nf_datapath #(
     
     localparam C_AXIS_TUSER_DIGEST_WIDTH = 304;
 
-    //internal connectivity
+    // internal connectivity
  
     (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         m_axis_opl_tdata;
     (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] m_axis_opl_tkeep;
@@ -198,12 +198,70 @@ module nf_datapath #(
     (* mark_debug = "true" *) wire                                     m_axis_opl_tready;
     (* mark_debug = "true" *) wire                                     m_axis_opl_tlast;
      
+    (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         m_axis_oq_0_tdata;
+    (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] m_axis_oq_0_tkeep;
+    (* mark_debug = "true" *) wire [C_AXIS_TUSER_DIGEST_WIDTH-1:0]     m_axis_oq_0_tuser;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_0_tvalid;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_0_tready;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_0_tlast;
+    
+    (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         m_axis_cq_0_tdata;
+    (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] m_axis_cq_0_tkeep;
+    (* mark_debug = "true" *) wire [C_AXIS_TUSER_DIGEST_WIDTH-1:0]     m_axis_cq_0_tuser;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_0_tvalid;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_0_tready;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_0_tlast;
+      
+    (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         m_axis_oq_1_tdata;
+    (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] m_axis_oq_1_tkeep;
+    (* mark_debug = "true" *) wire [C_AXIS_TUSER_DIGEST_WIDTH-1:0]     m_axis_oq_1_tuser;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_1_tvalid;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_1_tready;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_1_tlast;
+    
+    (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         m_axis_cq_1_tdata;
+    (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] m_axis_cq_1_tkeep;
+    (* mark_debug = "true" *) wire [C_AXIS_TUSER_DIGEST_WIDTH-1:0]     m_axis_cq_1_tuser;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_1_tvalid;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_1_tready;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_1_tlast;
+
+    (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         m_axis_oq_2_tdata;
+    (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] m_axis_oq_2_tkeep;
+    (* mark_debug = "true" *) wire [C_AXIS_TUSER_DIGEST_WIDTH-1:0]     m_axis_oq_2_tuser;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_2_tvalid;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_2_tready;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_2_tlast;
+    
+    (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         m_axis_cq_2_tdata;
+    (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] m_axis_cq_2_tkeep;
+    (* mark_debug = "true" *) wire [C_AXIS_TUSER_DIGEST_WIDTH-1:0]     m_axis_cq_2_tuser;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_2_tvalid;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_2_tready;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_2_tlast;
+
+    (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         m_axis_oq_3_tdata;
+    (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] m_axis_oq_3_tkeep;
+    (* mark_debug = "true" *) wire [C_AXIS_TUSER_DIGEST_WIDTH-1:0]     m_axis_oq_3_tuser;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_3_tvalid;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_3_tready;
+    (* mark_debug = "true" *) wire                                     m_axis_oq_3_tlast;
+    
+    (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         m_axis_cq_3_tdata;
+    (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] m_axis_cq_3_tkeep;
+    (* mark_debug = "true" *) wire [C_AXIS_TUSER_DIGEST_WIDTH-1:0]     m_axis_cq_3_tuser;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_3_tvalid;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_3_tready;
+    (* mark_debug = "true" *) wire                                     m_axis_cq_3_tlast;
+    
     (* mark_debug = "true" *) wire [C_M_AXIS_DATA_WIDTH - 1:0]         s_axis_opl_tdata;
     (* mark_debug = "true" *) wire [((C_M_AXIS_DATA_WIDTH / 8)) - 1:0] s_axis_opl_tkeep;
     (* mark_debug = "true" *) wire [C_M_AXIS_TUSER_WIDTH-1:0]          s_axis_opl_tuser;
     (* mark_debug = "true" *) wire                                     s_axis_opl_tvalid;
     (* mark_debug = "true" *) wire                                     s_axis_opl_tready;
     (* mark_debug = "true" *) wire                                     s_axis_opl_tlast;
+
+    
   
     localparam Q_SIZE_WIDTH = 16;
     (* mark_debug = "true" *) wire [Q_SIZE_WIDTH-1:0]    nf0_q_size; 
@@ -212,7 +270,7 @@ module nf_datapath #(
     (* mark_debug = "true" *) wire [Q_SIZE_WIDTH-1:0]    nf3_q_size; 
     (* mark_debug = "true" *) wire [Q_SIZE_WIDTH-1:0]    dma_q_size; 
  
-  //Input Arbiter
+  // Input Arbiter
   input_arbiter_drr_ip 
  input_arbiter_drr_v1_0 (
       .axis_aclk(axis_aclk), 
@@ -327,7 +385,7 @@ module nf_datapath #(
 //    assign nf3_q_size = 'd15;
 //    assign dma_q_size = 'd16;
 
-      //Output queues
+      // Output queues
        sss_output_queues_ip  
      bram_output_queues_1 (
       .axis_aclk(axis_aclk), 
