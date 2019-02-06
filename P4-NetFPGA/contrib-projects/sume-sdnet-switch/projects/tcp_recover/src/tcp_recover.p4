@@ -42,11 +42,14 @@ typedef bit<32> IPv4Addr_t;
 #define IPV4_TYPE 0x0800
 #define TCP_TYPE 6
 
+#define FIN_MASK 8w0b0000_0001
+#define FIN_POS 0
+
 #define SYN_MASK 8w0b0000_0010
 #define SYN_POS 1
 
-#define FIN_MASK 8w0b0000_0001
-#define FIN_POS 0
+#define ACK_MASK 8w0b0001_0000
+#define ACK_POS 4
 
 #define REG_READ   8w0
 #define REG_WRITE  8w1
@@ -59,19 +62,28 @@ typedef bit<32> IPv4Addr_t;
 @Xilinx_ControlWidth(0)
 extern void hash_lrc(in bit<104> in_data, out bit<HASH_WIDTH> result);
 
-// byte_cnt register
+// seq_no register (per flow)
 @Xilinx_MaxLatency(64)
 @Xilinx_ControlWidth(HASH_WIDTH)
-extern void byte_cnt_reg_raw(in bit<HASH_WIDTH> index,
+extern void seq_no_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<32> newVal,
                              in bit<32> incVal,
                              in bit<8> opCode,
                              out bit<32> result);
 
-// dist register
+// pkt_processed register (to calculate number of pkts need to drop)                    
+@Xilinx_MaxLatency(64)
+@Xilinx_ControlWidth(HASH_WIDTH)
+extern void pkt_cnt_reg_raw(in bit<HASH_WIDTH> index,
+                             in bit<32> newVal,
+                             in bit<32> incVal,
+                             in bit<8> opCode,
+                             out bit<32> result);
+
+// ack_cnt register
 @Xilinx_MaxLatency(64)
 @Xilinx_ControlWidth(3)
-extern void dist_reg_raw(in bit<3> index,
+extern void ack_cnt_reg_raw(in bit<3> index,
                          in bit<32> newVal,
                          in bit<32> incVal,
                          in bit<8> opCode,
@@ -114,7 +126,6 @@ header TCP_h {
     bit<16> urgentPtr;
 }
 
-
 // List of all recognized headers
 struct Parsed_packet { 
     Ethernet_h ethernet; 
@@ -130,11 +141,13 @@ struct user_metadata_t {
 
 // digest data to be sent to CPU if desired. MUST be 256 bits!
 struct digest_data_t {
-    bit<256>  unused;
+    bit<72>  unused;
+    bit<104> flow_id
+    bit<80> tuser;
 }
 
 // Parser Implementation
-@Xilinx_MaxPacketRegion(16384)
+@Xilinx_MaxPacketRegion(8192)
 parser TopParser(packet_in b, 
                  out Parsed_packet p, 
                  out user_metadata_t user_metadata,
@@ -176,12 +189,136 @@ control TopPipe(inout Parsed_packet p,
 
     action nop() {}
 
+    action compute_flow_id(int i) {
+        if (i == 1) { // is an ACK
+            digest_data.flow_id = p.ip.dstAddr++p.ip.srcAddr++p.ip.protocol++p.tcp.dstPort++p.tcp.srcPort;
+        } else { // send direction
+            digest_data.flow_id = p.ip.srcAddr++p.ip.dstAddr++p.ip.protocol++p.tcp.srcPort++p.tcp.dstPort;
+        }
+    }
 
-    // compute hash of 5-tuple to obtain index for byte_cnt register
-    hash_lrc(p.ip.srcAddr++p.ip.dstAddr++p.ip.protocol++p.tcp.srcPort++p.tcp.dstPort, hash_result); 
+    table retransmit {
+        key = { digest_data.flow_id: exact; }
+
+        actions = {
+            set_output_port;
+            nop;
+        }
+        size = 64;
+        default_action = nop;
+    }
 
     apply {
+        if (p.tcp.isValid()) {
+            // metadata for seq_no register access
+            bit<HASH_WIDTH> hash_result;
+
+            // metadata for ack_cnt register access
+            bit<32> newVal;
+            bit<32> incVal;
+            bit<8> opCode;
+
+            // check if it's an ACK packet
+            if ((p.tcp.flags & ACK_MASK) >> ACK_POS == 1) {
+                // Is an ACK packet
+                compute_flow_id(1);
+                
+                // compute hash of 5-tuple to obtain index for seq_no register, with src and dst swapped
+                hash_lrc(digest_data.flow_id, hash_result); 
+                
+                // if the flow_id is in our match-action table, apply our fast recover, otherwise, ignore
+                if (retransmit.apply().hit) { 
+                    if (seq_no_reg_raw == 0) {
+                        seq_no_reg_raw = p.tcp.seqNo;
+                    } else {
+                        if (p.tcp.seqNo <= this) {
+
+                        } else {
+
+                        }
+                    }
+                }      
+            } else { 
+                // not an ACK packet
+                compute_flow_id(0);
+                // compute hash of 5-tuple to obtain index for seq_no register
+                hash_lrc(digest_data.flow_id, hash_result); 
+
+                // if the flow_id is in our match-action table, apply our fast recover, otherwise, ignore
+                if (retransmit.apply().hit) { 
+                    if (seq_no_reg_raw == 0) {
+                        seq_no_reg_raw = p.tcp.seqNo;
+                    } else {
+                        if (p.tcp.seqNo > this) {
+                            // compute how many pkts need to drop
+
+                            // 
+                        } else {
+                            // tell cache_queue to ignore this pkt
+                            digest_data.tuser = 
+                        }
+                    }
+                }      
+            }
+            
+            // TODO: set newVal, incVal, and opCode appropriately based on
+            // whether this is a SYN packet 
+            if ((p.tcp.flags & SYN_MASK) >> SYN_POS == 1) {
+                // Is a SYN packet
+                newVal = 0; // reset the pkt_cnt state for this entry
+                incVal = 0; // unused
+                opCode = REG_WRITE;
+            } else {
+                // Is not a SYN packet
+                newVal = 0; // unused
+                incVal = 16w0++sume_metadata.pkt_len - 32w54; // count TCP payload bytes for this connection
+                opCode = REG_ADD;
+            }
         
+            // access the byte_cnt register 
+            bit<32> numBytes;
+            byte_cnt_reg_raw(hash_result, newVal, incVal, opCode, numBytes);
+
+            bit<3> index;
+
+            // TODO: set index, newVal, incVal, and opCode appropriately
+            // based on whether or not this is a FIN packet
+            if((p.tcp.flags & FIN_MASK) >> FIN_POS == 1) {
+                // FIN bit is set 
+                newVal = 0; // unused
+                incVal = 1; // increment one of the buckets
+                opCode = REG_ADD;
+
+                if (numBytes <= LEVEL_1) {
+                    index = 0;
+                } else if (LEVEL_1 < numBytes && numBytes <= LEVEL_2) {
+                    index = 1;
+                } else if (LEVEL_2 < numBytes && numBytes <= LEVEL_3) {
+                    index = 2;
+                } else if (LEVEL_3 < numBytes && numBytes <= LEVEL_4) {
+                    index = 3;
+                } else if (LEVEL_4 < numBytes && numBytes <= LEVEL_5) {
+                    index = 4;
+                } else if (LEVEL_5 < numBytes && numBytes <= LEVEL_6) {
+                    index = 5;
+                } else if (LEVEL_6 < numBytes && numBytes <= LEVEL_7) {
+                    index = 6; 
+                } else {
+                    index = 7;
+                }
+            }
+            else {
+                index = 0;
+                newVal = 0; // unused
+                incVal = 0; // unused
+                opCode = REG_READ;
+            }
+
+            // access the distribution register 
+            bit<32> result; 
+            dist_reg_raw(index, newVal, incVal, opCode, result);
+
+        }
     }
 }
 

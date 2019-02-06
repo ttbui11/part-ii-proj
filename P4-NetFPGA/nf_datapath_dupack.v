@@ -240,7 +240,7 @@ module nf_datapath #(
     (* mark_debug = "true" *) wire [Q_SIZE_WIDTH-1:0]    nf3_q_size; 
     (* mark_debug = "true" *) wire [Q_SIZE_WIDTH-1:0]    dma_q_size; 
  
-  // Input Arbiter
+  //Input Arbiter
   input_arbiter_ip 
  input_arbiter_v1_0 (
       .axis_aclk(axis_aclk), 
@@ -355,7 +355,7 @@ module nf_datapath #(
 //    assign nf3_q_size = 'd15;
 //    assign dma_q_size = 'd16;
 
-      // Output queues
+      //Output queues
        sss_output_queues_ip  
      _output_queues_1 (
       .axis_aclk(axis_aclk), 
