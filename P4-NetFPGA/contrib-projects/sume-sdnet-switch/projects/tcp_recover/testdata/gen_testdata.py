@@ -74,10 +74,15 @@ def expPkt(pkt, egress):
     sss_sdnet_tuples.write_tuples()
     if egress in ["nf0","nf1","nf2","nf3"]:
         nf_expected[nf_id_map[egress]].append(pkt)
+        nf_expected[nf_id_map[egress]].append(pkt)
     elif egress == 'bcast':
         nf_expected[0].append(pkt)
+        nf_expected[0].append(pkt)
+        nf_expected[1].append(pkt)
         nf_expected[1].append(pkt)
         nf_expected[2].append(pkt)
+        nf_expected[2].append(pkt)
+        nf_expected[3].append(pkt)
         nf_expected[3].append(pkt)
 
 def write_pcap_files():
@@ -98,7 +103,76 @@ def write_pcap_files():
 #####################
 # generate testdata #
 #####################
+MAC1 = "11:11:11:11:11:11"
+MAC2 = "22:22:22:22:22:22"
+sport = 55
+dport = 72
+IP1_src = "10.0.0.1"
+IP1_dst = "10.0.0.2"
+IP2_src = "192.168.1.1"
+IP2_dst = "192.168.1.27"
+IP3_src = "12.138.254.42"
+IP3_dst = "12.138.254.33"
 
+
+PKT_SIZE = 1000
+MIN_PKT_SIZE = 64
+HEADER_SIZE = 54 # size of TCP header
+
+# # Create a single TCP flow using the given 5-tuple parameters of the given size
+# def make_flow(srcIP, dstIP, sport, dport, flow_size):
+#     pkts = []
+#     # make the SYN PKT
+#     pkt = Ether(dst=MAC1, src=MAC2) / IP(src=srcIP, dst=dstIP) / TCP(sport=sport, dport=dport, flags='S')
+#     pkt = pad_pkt(pkt, MIN_PKT_SIZE)
+#     pkts.append(pkt)
+#     # make the data pkts
+#     size = flow_size
+#     while size >= PKT_SIZE:
+#         pkt = Ether(dst=MAC1, src=MAC2) / IP(src=srcIP, dst=dstIP) / TCP(sport=sport, dport=dport, flags='A')
+#         pkt = pad_pkt(pkt, PKT_SIZE + HEADER_SIZE)
+#         pkts.append(pkt)
+#         size -= PKT_SIZE
+#     # make the FIN pkt
+#     size = max(MIN_PKT_SIZE - HEADER_SIZE, size)
+#     pkt = Ether(dst=MAC1, src=MAC2) / IP(src=srcIP, dst=dstIP) / TCP(sport=sport, dport=dport, flags='F')
+#     pkt = pad_pkt(pkt, HEADER_SIZE + size)
+#     pkts.append(pkt)
+#     return pkts
+
+# # randomly interleave the flow's packets
+# def mix_flows(flows):
+#     trace = []
+#     for fid in range(len(flows)):
+#         trace = map(next, random.sample([iter(trace)]*len(trace) + [iter(flows[fid])]*len(flows[fid]), len(trace)+len(flows[fid])))
+#     return trace
+
+# # Create 3 flows and mix them together
+# flow1 = make_flow(IP1_src, IP1_dst, sport, dport, 1000)
+# flow2 = make_flow(IP2_src, IP2_dst, sport, dport, 20000)
+# flow3 = make_flow(IP3_src, IP3_dst, sport, dport, 1000)
+# trace = mix_flows([flow1, flow2, flow3])
+
+# # apply the trace
+# i = 0
+# drop = True
+# ingress = "nf0"
+# egress = "none"
+# for pkt in trace:
+#     applyPkt(pkt, ingress, i)
+#     i += 1
+#     expPkt(pkt, egress, drop)
+    
+
+# Final dummy pkt (not dropped) - used for barrier in SUME simulations
+drop = False
+pkt = Ether(dst="08:11:11:11:11:08") / IP()
+pkt = pad_pkt(pkt, 64)
+ingress = "nf0"
+i += 1
+applyPkt(pkt, ingress, i)
+egress = "nf0"
+expPkt(pkt, egress, drop)
 
 write_pcap_files()
 

@@ -66,7 +66,6 @@ module sss_cache_queues
     parameter C_S_AXIS_DATA_WIDTH=256,
     parameter C_M_AXIS_TUSER_WIDTH=128,
     parameter C_S_AXIS_TUSER_WIDTH=128,
-//     parameter C_S_AXIS_TUSER_WIDTH=304,
     parameter NUM_QUEUES=5,
 
     // AXI Registers Data Width
