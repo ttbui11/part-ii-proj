@@ -55,15 +55,22 @@ typedef bit<32> IPv4Addr_t;
 #define REG_WRITE  8w1
 #define REG_ADD    8w2
 
-
 #define HASH_WIDTH 5
+
+#define PKT_SIZE 64
+
+#define nf0 8w0b0000_0001
+#define nf1 8w0b0000_0100
+#define nf2 8w0b0001_0000
+#define nf3 8w0b0100_0000
+
 
 // hash function
 @Xilinx_MaxLatency(1)
 @Xilinx_ControlWidth(0)
 extern void hash_lrc(in bit<104> in_data, out bit<HASH_WIDTH> result);
 
-// seq_no register (per flow)
+// latest_seq_no register (per flow)
 @Xilinx_MaxLatency(64)
 @Xilinx_ControlWidth(HASH_WIDTH)
 extern void seq_no_reg_raw(in bit<HASH_WIDTH> index,
@@ -72,10 +79,19 @@ extern void seq_no_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<8> opCode,
                              out bit<32> result);
 
-// pkt_cached register (to calculate number of pkts need to drop)                    
+// pkt_cached (per flow)
 @Xilinx_MaxLatency(64)
 @Xilinx_ControlWidth(HASH_WIDTH)
 extern void pkt_cached_reg_raw(in bit<HASH_WIDTH> index,
+                             in bit<32> newVal,
+                             in bit<32> incVal,
+                             in bit<8> opCode,
+                             out bit<32> result);                         
+
+// latest_ack_no register (to calculate number of pkts need to drop)                    
+@Xilinx_MaxLatency(64)
+@Xilinx_ControlWidth(HASH_WIDTH)
+extern void ack_no_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<32> newVal,
                              in bit<32> incVal,
                              in bit<8> opCode,
@@ -83,12 +99,21 @@ extern void pkt_cached_reg_raw(in bit<HASH_WIDTH> index,
 
 // ack_cnt register
 @Xilinx_MaxLatency(64)
-@Xilinx_ControlWidth(3)
-extern void ack_cnt_reg_raw(in bit<3> index,
+@Xilinx_ControlWidth(HASH_WIDTH)
+extern void ack_cnt_reg_raw(in bit<HASH_WIDTH> index,
                          in bit<32> newVal,
                          in bit<32> incVal,
                          in bit<8> opCode,
                          out bit<32> result);
+
+// retransmit_cnt register
+@Xilinx_MaxLatency(64)
+@Xilinx_ControlWidth(HASH_WIDTH)
+extern void retransmit_cnt_reg_raw(in bit<HASH_WIDTH> index,
+                         in bit<32> newVal,
+                         in bit<32> incVal,
+                         in bit<8> opCode,
+                         out bit<32> result);                   
 
 // standard Ethernet header
 header Ethernet_h { 
@@ -188,9 +213,21 @@ control TopPipe(inout Parsed_packet p,
         sume_metadata.dst_port = port;
     }
 
+    action cache_write(port_t port) {
+        digest_data.tuser
+    }
+
+    action cache_read(port_t port) {
+
+    }
+
+    action cache_drop(port_t port, bit<8> drop_count) {
+
+    }
+
     action nop() {}
 
-    action compute_flow_id(int i) {
+    action compute_flow_id(bit<1> i) {
         if (i == 1) { // is an ACK
             digest_data.flow_id = p.ip.dstAddr++p.ip.srcAddr++p.ip.protocol++p.tcp.dstPort++p.tcp.srcPort;
         } else { // 'send' direction
@@ -211,13 +248,8 @@ control TopPipe(inout Parsed_packet p,
 
     apply {
         if (p.tcp.isValid()) {
-            // metadata for seq_no register access
+            // metadata for seq_no index register access
             bit<HASH_WIDTH> hash_result;
-
-            // metadata for ack_cnt register access
-            bit<32> newVal;
-            bit<32> incVal;
-            bit<8> opCode;
 
             // check if it's an ACK packet
             if ((p.tcp.flags & ACK_MASK) >> ACK_POS == 1) {
@@ -227,100 +259,78 @@ control TopPipe(inout Parsed_packet p,
                 // compute hash of 5-tuple to obtain index for seq_no register, with src and dst swapped
                 hash_lrc(digest_data.flow_id, hash_result); 
                 
-                // if the flow_id is in our match-action table, apply our fast recover, otherwise, ignore
+                // metadata for register access
+                bit<32> latestSeqNo;
+                bit<32> latestAckNo;
+                bit<32> ackCnt;
+                bit<32> retransmitCnt;
+
+                // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
                 if (retransmit.apply().hit) { 
-                    if (seq_no_reg_raw == 0) {
-                        seq_no_reg_raw = p.tcp.seqNo;
+                    if (p.tcp.ackNo) {
+                        // this ACK number is more than latestSeqNo -- update, drop cached pkts and reset counters
+                        // update
+
+                        // calculate number of pkts to drop
+                        drop_count = (p.tcp.ackNo - latestAckNo)/PKT_SIZE < pktCached ? (p.tcp.ackNo - latestAckNo)/PKT_SIZE : pktCached
+
+                        // drop cached pkts
+                        // cache_drop( ,drop_count);
+
+                        // reset counters
+                        ack_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, ackCnt);
+                        retransmitCnt(hash_result, 0, 0, REG_WRITE, retransmitCnt);
                     } else {
-                        if (p.tcp.seqNo > this) {
+                        // read ackCnt
+                        ack_cnt_reg_raw(hash_result, 0, 0, REG_READ, ackCnt);
 
+                        if (ackCnt < 3) {
+                            // if ackCnt < 3, send pkt to src "as-is" & increment ackCnt
+                            ack_cnt_reg_raw(hash_result, 0, 1, REG_ADD, ackCnt);
                         } else {
+                            // ackCnt >= 3, read retransmitCnt
+                            retransmit_cnt_reg_raw(hash_result, 0, 0, REG_READ, retransmitCnt);
 
+                            if (retransmitCnt == 0) {
+                                // N = 1 -- haven't retransmitted
+                                // resend pkt
+                                cache_read();
+
+                                // retransmitCnt++
+                                retransmit_cnt_reg_raw(hash_result, 0, 1, REG_ADD, retransmitCnt);
+
+                                // send this pkt to host with ACK flag = 0
+                                p.tcp.flags ^= ACK_MASK;
+                            } else {
+                                // already retransmitted -- send pkt to src "as-is"
+                                // reset retransmitCnt
+                                retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
+                            }
                         }
                     }
-                }      
+                }
             } else { 
                 // not an ACK packet
                 compute_flow_id(0);
                 // compute hash of 5-tuple to obtain index for seq_no register
                 hash_lrc(digest_data.flow_id, hash_result); 
 
-                // if the flow_id is in our match-action table, apply our fast recover, otherwise, ignore
-                if (retransmit.apply().hit) { 
-                    if (seq_no_reg_raw == 0) {
-                        seq_no_reg_raw = p.tcp.seqNo;
-                    } else {
-                        if (p.tcp.seqNo > this) {
-                            // add pkt to cache_queue - do nothing
-                            ; 
-                            
-                            // update pkt_cached register
-                            new
-                        } else {
-                            // tell cache_queue to ignore this pkt
-                            digest_data.tuser = 
-                        }
-                    }
-                }      
+                // metadata for register access
+                bit<32> latestSeqNo;
+
+                // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
+                if (retransmit.apply().hit) {
+                    // read the latest seqNo
+                    seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
+
+                    if (p.tcp.seqNo > latestSeqNo) {
+                        // new package -- add pkt to cache_queue
+                        cache_write(sume_metadata.dstPort);
+                        // update latest seqNo
+                        seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, latestSeqNo);
+                    } // else it's an old pkt that we have already cached -- do nothing
+                } 
             }
-            
-            // TODO: set newVal, incVal, and opCode appropriately based on
-            // whether this is a SYN packet 
-            if ((p.tcp.flags & SYN_MASK) >> SYN_POS == 1) {
-                // Is a SYN packet
-                newVal = 0; // reset the pkt_cnt state for this entry
-                incVal = 0; // unused
-                opCode = REG_WRITE;
-            } else {
-                // Is not a SYN packet
-                newVal = 0; // unused
-                incVal = 16w0++sume_metadata.pkt_len - 32w54; // count TCP payload bytes for this connection
-                opCode = REG_ADD;
-            }
-        
-            // access the byte_cnt register 
-            bit<32> numBytes;
-            byte_cnt_reg_raw(hash_result, newVal, incVal, opCode, numBytes);
-
-            bit<3> index;
-
-            // TODO: set index, newVal, incVal, and opCode appropriately
-            // based on whether or not this is a FIN packet
-            if((p.tcp.flags & FIN_MASK) >> FIN_POS == 1) {
-                // FIN bit is set 
-                newVal = 0; // unused
-                incVal = 1; // increment one of the buckets
-                opCode = REG_ADD;
-
-                if (numBytes <= LEVEL_1) {
-                    index = 0;
-                } else if (LEVEL_1 < numBytes && numBytes <= LEVEL_2) {
-                    index = 1;
-                } else if (LEVEL_2 < numBytes && numBytes <= LEVEL_3) {
-                    index = 2;
-                } else if (LEVEL_3 < numBytes && numBytes <= LEVEL_4) {
-                    index = 3;
-                } else if (LEVEL_4 < numBytes && numBytes <= LEVEL_5) {
-                    index = 4;
-                } else if (LEVEL_5 < numBytes && numBytes <= LEVEL_6) {
-                    index = 5;
-                } else if (LEVEL_6 < numBytes && numBytes <= LEVEL_7) {
-                    index = 6; 
-                } else {
-                    index = 7;
-                }
-            }
-            else {
-                index = 0;
-                newVal = 0; // unused
-                incVal = 0; // unused
-                opCode = REG_READ;
-            }
-
-            // access the distribution register 
-            bit<32> result; 
-            dist_reg_raw(index, newVal, incVal, opCode, result);
-
         }
     }
 }
