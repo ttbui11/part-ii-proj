@@ -57,6 +57,7 @@ typedef bit<32> IPv4Addr_t;
 
 
 #define HASH_WIDTH 5
+
 // hash function
 @Xilinx_MaxLatency(1)
 @Xilinx_ControlWidth(0)
@@ -71,10 +72,10 @@ extern void seq_no_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<8> opCode,
                              out bit<32> result);
 
-// pkt_processed register (to calculate number of pkts need to drop)                    
+// pkt_cached register (to calculate number of pkts need to drop)                    
 @Xilinx_MaxLatency(64)
 @Xilinx_ControlWidth(HASH_WIDTH)
-extern void pkt_cnt_reg_raw(in bit<HASH_WIDTH> index,
+extern void pkt_cached_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<32> newVal,
                              in bit<32> incVal,
                              in bit<8> opCode,
@@ -192,7 +193,7 @@ control TopPipe(inout Parsed_packet p,
     action compute_flow_id(int i) {
         if (i == 1) { // is an ACK
             digest_data.flow_id = p.ip.dstAddr++p.ip.srcAddr++p.ip.protocol++p.tcp.dstPort++p.tcp.srcPort;
-        } else { // send direction
+        } else { // 'send' direction
             digest_data.flow_id = p.ip.srcAddr++p.ip.dstAddr++p.ip.protocol++p.tcp.srcPort++p.tcp.dstPort;
         }
     }
@@ -231,7 +232,7 @@ control TopPipe(inout Parsed_packet p,
                     if (seq_no_reg_raw == 0) {
                         seq_no_reg_raw = p.tcp.seqNo;
                     } else {
-                        if (p.tcp.seqNo <= this) {
+                        if (p.tcp.seqNo > this) {
 
                         } else {
 
@@ -250,9 +251,11 @@ control TopPipe(inout Parsed_packet p,
                         seq_no_reg_raw = p.tcp.seqNo;
                     } else {
                         if (p.tcp.seqNo > this) {
-                            // compute how many pkts need to drop
-
-                            // 
+                            // add pkt to cache_queue - do nothing
+                            ; 
+                            
+                            // update pkt_cached register
+                            new
                         } else {
                             // tell cache_queue to ignore this pkt
                             digest_data.tuser = 
