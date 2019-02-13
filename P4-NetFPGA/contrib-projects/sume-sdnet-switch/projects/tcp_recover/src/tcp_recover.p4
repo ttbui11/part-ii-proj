@@ -168,7 +168,7 @@ struct user_metadata_t {
 // digest data to be sent to CPU if desired. MUST be 256 bits!
 struct digest_data_t {
     bit<72>  unused;
-    bit<104> flow_id
+    bit<104> flow_id;
     bit<80> tuser;
 }
 
@@ -214,7 +214,7 @@ control TopPipe(inout Parsed_packet p,
     }
 
     action cache_write(port_t port) {
-        digest_data.tuser
+        // digest_data.tuser;
     }
 
     action cache_read(port_t port) {
@@ -247,91 +247,91 @@ control TopPipe(inout Parsed_packet p,
     }
 
     apply {
-        if (p.tcp.isValid()) {
-            // metadata for seq_no index register access
-            bit<HASH_WIDTH> hash_result;
+        // if (p.tcp.isValid()) {
+        //     // metadata for seq_no index register access
+        //     bit<HASH_WIDTH> hash_result;
 
-            // check if it's an ACK packet
-            if ((p.tcp.flags & ACK_MASK) >> ACK_POS == 1) {
-                // Is an ACK packet
-                compute_flow_id(1);
+        //     // check if it's an ACK packet
+        //     if ((p.tcp.flags & ACK_MASK) >> ACK_POS == 1) {
+        //         // Is an ACK packet
+        //         compute_flow_id(1);
                 
-                // compute hash of 5-tuple to obtain index for seq_no register, with src and dst swapped
-                hash_lrc(digest_data.flow_id, hash_result); 
+        //         // compute hash of 5-tuple to obtain index for seq_no register, with src and dst swapped
+        //         hash_lrc(digest_data.flow_id, hash_result); 
                 
-                // metadata for register access
-                bit<32> latestSeqNo;
-                bit<32> latestAckNo;
-                bit<32> ackCnt;
-                bit<32> retransmitCnt;
+        //         // metadata for register access
+        //         bit<32> latestSeqNo;
+        //         bit<32> latestAckNo;
+        //         bit<32> ackCnt;
+        //         bit<32> retransmitCnt;
 
-                // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
-                if (retransmit.apply().hit) { 
-                    if (p.tcp.ackNo) {
-                        // this ACK number is more than latestSeqNo -- update, drop cached pkts and reset counters
-                        // update
+        //         // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
+        //         if (retransmit.apply().hit) { 
+        //             if (p.tcp.ackNo) {
+        //                 // this ACK number is more than latestSeqNo -- update, drop cached pkts and reset counters
+        //                 // update
 
-                        // calculate number of pkts to drop
-                        drop_count = (p.tcp.ackNo - latestAckNo)/PKT_SIZE < pktCached ? (p.tcp.ackNo - latestAckNo)/PKT_SIZE : pktCached
+        //                 // calculate number of pkts to drop
+        //                 drop_count = (p.tcp.ackNo - latestAckNo)/PKT_SIZE < pktCached ? (p.tcp.ackNo - latestAckNo)/PKT_SIZE : pktCached
 
-                        // drop cached pkts
-                        // cache_drop( ,drop_count);
+        //                 // drop cached pkts
+        //                 // cache_drop( ,drop_count);
 
-                        // reset counters
-                        ack_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, ackCnt);
-                        retransmitCnt(hash_result, 0, 0, REG_WRITE, retransmitCnt);
-                    } else {
-                        // read ackCnt
-                        ack_cnt_reg_raw(hash_result, 0, 0, REG_READ, ackCnt);
+        //                 // reset counters
+        //                 ack_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, ackCnt);
+        //                 retransmitCnt(hash_result, 0, 0, REG_WRITE, retransmitCnt);
+        //             } else {
+        //                 // read ackCnt
+        //                 ack_cnt_reg_raw(hash_result, 0, 0, REG_READ, ackCnt);
 
-                        if (ackCnt < 3) {
-                            // if ackCnt < 3, send pkt to src "as-is" & increment ackCnt
-                            ack_cnt_reg_raw(hash_result, 0, 1, REG_ADD, ackCnt);
-                        } else {
-                            // ackCnt >= 3, read retransmitCnt
-                            retransmit_cnt_reg_raw(hash_result, 0, 0, REG_READ, retransmitCnt);
+        //                 if (ackCnt < 3) {
+        //                     // if ackCnt < 3, send pkt to src "as-is" & increment ackCnt
+        //                     ack_cnt_reg_raw(hash_result, 0, 1, REG_ADD, ackCnt);
+        //                 } else {
+        //                     // ackCnt >= 3, read retransmitCnt
+        //                     retransmit_cnt_reg_raw(hash_result, 0, 0, REG_READ, retransmitCnt);
 
-                            if (retransmitCnt == 0) {
-                                // N = 1 -- haven't retransmitted
-                                // resend pkt
-                                cache_read();
+        //                     if (retransmitCnt == 0) {
+        //                         // N = 1 -- haven't retransmitted
+        //                         // resend pkt
+        //                         cache_read();
 
-                                // retransmitCnt++
-                                retransmit_cnt_reg_raw(hash_result, 0, 1, REG_ADD, retransmitCnt);
+        //                         // retransmitCnt++
+        //                         retransmit_cnt_reg_raw(hash_result, 0, 1, REG_ADD, retransmitCnt);
 
-                                // send this pkt to host with ACK flag = 0
-                                p.tcp.flags ^= ACK_MASK;
-                            } else {
-                                // already retransmitted -- send pkt to src "as-is"
-                                // reset retransmitCnt
-                                retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
-                            }
-                        }
-                    }
-                }
-            } else { 
-                // not an ACK packet
-                compute_flow_id(0);
-                // compute hash of 5-tuple to obtain index for seq_no register
-                hash_lrc(digest_data.flow_id, hash_result); 
+        //                         // send this pkt to host with ACK flag = 0
+        //                         p.tcp.flags ^= ACK_MASK;
+        //                     } else {
+        //                         // already retransmitted -- send pkt to src "as-is"
+        //                         // reset retransmitCnt
+        //                         retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     } else { 
+        //         // not an ACK packet
+        //         compute_flow_id(0);
+        //         // compute hash of 5-tuple to obtain index for seq_no register
+        //         hash_lrc(digest_data.flow_id, hash_result); 
 
-                // metadata for register access
-                bit<32> latestSeqNo;
+        //         // metadata for register access
+        //         bit<32> latestSeqNo;
 
-                // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
-                if (retransmit.apply().hit) {
-                    // read the latest seqNo
-                    seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
+        //         // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
+        //         if (retransmit.apply().hit) {
+        //             // read the latest seqNo
+        //             seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
 
-                    if (p.tcp.seqNo > latestSeqNo) {
-                        // new package -- add pkt to cache_queue
-                        cache_write(sume_metadata.dstPort);
-                        // update latest seqNo
-                        seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, latestSeqNo);
-                    } // else it's an old pkt that we have already cached -- do nothing
-                } 
-            }
-        }
+        //             if (p.tcp.seqNo > latestSeqNo) {
+        //                 // new package -- add pkt to cache_queue
+        //                 cache_write(sume_metadata.dstPort);
+        //                 // update latest seqNo
+        //                 seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, latestSeqNo);
+        //             } // else it's an old pkt that we have already cached -- do nothing
+        //         } 
+        //     }
+        // }
     }
 }
 

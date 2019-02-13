@@ -68,14 +68,14 @@ def applyPkt(pkt, ingress, time):
     pkt.time = time
     nf_applied[nf_id_map[ingress]].append(pkt)
 
-def expPkt(pkt, egress):
+def expPkt(pkt, egress, drop):
     pktsExpected.append(pkt)
     sss_sdnet_tuples.sume_tuple_expect['dst_port'] = nf_port_map[egress]
     sss_sdnet_tuples.write_tuples()
-    if egress in ["nf0","nf1","nf2","nf3"]:
+    if egress in ["nf0","nf1","nf2","nf3"] and drop == False:
         nf_expected[nf_id_map[egress]].append(pkt)
         nf_expected[nf_id_map[egress]].append(pkt)
-    elif egress == 'bcast':
+    elif egress == 'bcast' and drop == False:
         nf_expected[0].append(pkt)
         nf_expected[0].append(pkt)
         nf_expected[1].append(pkt)
@@ -154,7 +154,7 @@ HEADER_SIZE = 54 # size of TCP header
 # trace = mix_flows([flow1, flow2, flow3])
 
 # # apply the trace
-# i = 0
+i = 0
 # drop = True
 # ingress = "nf0"
 # egress = "none"
