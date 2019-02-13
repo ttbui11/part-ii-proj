@@ -235,18 +235,19 @@ control TopPipe(inout Parsed_packet p,
         }
     }
 
-    table retransmit {
-        key = { digest_data.flow_id: exact; }
+    // table retransmit {
+    //     key = { digest_data.flow_id: exact; }
 
-        actions = {
-            set_output_port;
-            nop;
-        }
-        size = 64;
-        default_action = nop;
-    }
+    //     actions = {
+    //         set_output_port;
+    //         nop;
+    //     }
+    //     size = 64;
+    //     default_action = nop;
+    // }
 
     apply {
+        compute_flow_id(1);
         // if (p.tcp.isValid()) {
         //     // metadata for seq_no index register access
         //     bit<HASH_WIDTH> hash_result;
