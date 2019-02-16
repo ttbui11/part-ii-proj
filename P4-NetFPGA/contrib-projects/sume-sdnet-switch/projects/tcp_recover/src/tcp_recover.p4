@@ -57,8 +57,10 @@ typedef bit<32> IPv4Addr_t;
 
 #define HASH_WIDTH 5
 
-#define PKT_SIZE 64
+#define PKT_SIZE 128
 
+#define UNUSED 8w0b0000_0000
+#define PADDING_80 48w0
 #define nf0 8w0b0000_0001
 #define nf1 8w0b0000_0100
 #define nf2 8w0b0001_0000
@@ -79,23 +81,24 @@ extern void seq_no_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<8> opCode,
                              out bit<32> result);
 
-// pkt_cached (per flow)
+// earliest_seq_no register (per flow)
 @Xilinx_MaxLatency(64)
 @Xilinx_ControlWidth(HASH_WIDTH)
-extern void pkt_cached_reg_raw(in bit<HASH_WIDTH> index,
+extern void earliest_seq_no_reg_raw(in bit<HASH_WIDTH> index,
+                             in bit<32> newVal,
+                             in bit<32> incVal,
+                             in bit<8> opCode,
+                             out bit<32> result);                            
+
+// pkts_cached_cnt (per flow)
+@Xilinx_MaxLatency(64)
+@Xilinx_ControlWidth(HASH_WIDTH)
+extern void pkts_cached_cnt_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<32> newVal,
                              in bit<32> incVal,
                              in bit<8> opCode,
                              out bit<32> result);                         
 
-// latest_ack_no register (to calculate number of pkts need to drop)                    
-@Xilinx_MaxLatency(64)
-@Xilinx_ControlWidth(HASH_WIDTH)
-extern void ack_no_reg_raw(in bit<HASH_WIDTH> index,
-                             in bit<32> newVal,
-                             in bit<32> incVal,
-                             in bit<8> opCode,
-                             out bit<32> result);
 
 // ack_cnt register
 @Xilinx_MaxLatency(64)
@@ -183,6 +186,8 @@ parser TopParser(packet_in b,
         b.extract(p.ethernet);
         user_metadata.unused = 0;
         digest_data.unused = 0;
+        digest_data.flow_id = 0;
+        digest_data.tuser = 0;
         transition select(p.ethernet.etherType) {
             IPV4_TYPE: parse_ipv4;
             default: reject;
@@ -214,15 +219,33 @@ control TopPipe(inout Parsed_packet p,
     }
 
     action cache_write(port_t port) {
-        // digest_data.tuser;
+        bit<8> cache_port; 
+        cache_port = (port & 1) |
+                     (((port >> 2) & 1) << 1) |
+                     (((port >> 4) & 1) << 2) |
+                     (((port >> 6) & 1) << 3) |
+                     (( ((port >> 1) & 1) | ((port >> 3) & 1) | ((port >> 5) & 1) | ((port >> 7) & 1) ) << 4);
+        digest_data.tuser = PADDING_80++UNUSED++UNUSED++UNUSED++cache_port;
     }
 
     action cache_read(port_t port) {
-
+        bit<8> cache_port;
+        cache_port = (port & 1) |
+                     (((port >> 2) & 1) << 1) |
+                     (((port >> 4) & 1) << 2) |
+                     (((port >> 6) & 1) << 3) |
+                     (( ((port >> 1) & 1) | ((port >> 3) & 1) | ((port >> 5) & 1) | ((port >> 7) & 1) ) << 4);
+        digest_data.tuser = PADDING_80++8w1++UNUSED++cache_port++UNUSED;
     }
 
-    action cache_drop(port_t port, bit<8> drop_count) {
-
+    action cache_drop(port_t port, bit<32> drop_count) {
+        bit<8> cache_port;
+        cache_port = (port & 1) |
+                     (((port >> 2) & 1) << 1) |
+                     (((port >> 4) & 1) << 2) |
+                     (((port >> 6) & 1) << 3) |
+                     (( ((port >> 1) & 1) | ((port >> 3) & 1) | ((port >> 5) & 1) | ((port >> 7) & 1) ) << 4);
+        digest_data.tuser = 24w0++drop_count++cache_port++UNUSED++UNUSED;
     }
 
     action nop() {}
@@ -235,104 +258,133 @@ control TopPipe(inout Parsed_packet p,
         }
     }
 
-    // table retransmit {
-    //     key = { digest_data.flow_id: exact; }
+    table retransmit {
+        key = { digest_data.flow_id: exact; }
 
-    //     actions = {
-    //         set_output_port;
-    //         nop;
-    //     }
-    //     size = 64;
-    //     default_action = nop;
-    // }
+        actions = {
+            set_output_port;
+            nop;
+        }
+        size = 64;
+        default_action = nop;
+    }
 
     apply {
-        compute_flow_id(1);
-        // if (p.tcp.isValid()) {
-        //     // metadata for seq_no index register access
-        //     bit<HASH_WIDTH> hash_result;
+        if (p.tcp.isValid()) {
+            // metadata for seq_no index register access
+            bit<HASH_WIDTH> hash_result;
 
-        //     // check if it's an ACK packet
-        //     if ((p.tcp.flags & ACK_MASK) >> ACK_POS == 1) {
-        //         // Is an ACK packet
-        //         compute_flow_id(1);
+            // check if it's an ACK packet
+            if ((p.tcp.flags & ACK_MASK) >> ACK_POS == 1) {
+                // Is an ACK packet
+                compute_flow_id(1);
                 
-        //         // compute hash of 5-tuple to obtain index for seq_no register, with src and dst swapped
-        //         hash_lrc(digest_data.flow_id, hash_result); 
+                // compute hash of 5-tuple to obtain index for seq_no register, with src and dst swapped
+                hash_lrc(digest_data.flow_id, hash_result); 
                 
-        //         // metadata for register access
-        //         bit<32> latestSeqNo;
-        //         bit<32> latestAckNo;
-        //         bit<32> ackCnt;
-        //         bit<32> retransmitCnt;
+                // metadata for register access
+                bit<32> latestSeqNo;
+                bit<32> earliestSeqNo;
+                bit<32> ackCnt;
+                bit<32> retransmitCnt;
+                bit<32> pktsCached;
+                bit<32> dropCount;
 
-        //         // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
-        //         if (retransmit.apply().hit) { 
-        //             if (p.tcp.ackNo) {
-        //                 // this ACK number is more than latestSeqNo -- update, drop cached pkts and reset counters
-        //                 // update
+                // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
+                if (retransmit.apply().hit) { 
+                    // read the latest seqNo
+                    seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
 
-        //                 // calculate number of pkts to drop
-        //                 drop_count = (p.tcp.ackNo - latestAckNo)/PKT_SIZE < pktCached ? (p.tcp.ackNo - latestAckNo)/PKT_SIZE : pktCached
+                    if (p.tcp.ackNo > latestSeqNo) {
+                        // this ACK number is more than latestSeqNo -- update, drop all cached pkts and reset counters
+                        pkts_cached_cnt_reg_raw(hash_result, 0, 0, REG_READ, dropCount);
 
-        //                 // drop cached pkts
-        //                 // cache_drop( ,drop_count);
+                        // drop cached pkts
+                        cache_drop(sume_metadata.src_port,dropCount);
 
-        //                 // reset counters
-        //                 ack_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, ackCnt);
-        //                 retransmitCnt(hash_result, 0, 0, REG_WRITE, retransmitCnt);
-        //             } else {
-        //                 // read ackCnt
-        //                 ack_cnt_reg_raw(hash_result, 0, 0, REG_READ, ackCnt);
+                        // reset counters
+                        ack_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, ackCnt);
+                        retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
+                        pkts_cached_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, dropCount);
+                    } else {
+                        // drop some pkts -- e.g. cache 1, 2, 3; receive ack 2 --> drop 1
+                        // calculate number of pkts to drop 
+                        pkts_cached_cnt_reg_raw(hash_result, 0, 0, REG_READ, pktsCached); // number of pkts cached
+                        earliest_seq_no_reg_raw(hash_result, 0, 0, REG_READ, earliestSeqNo); // earliest seqNo          
+                        dropCount = ((p.tcp.ackNo-earliestSeqNo)/PKT_SIZE);
 
-        //                 if (ackCnt < 3) {
-        //                     // if ackCnt < 3, send pkt to src "as-is" & increment ackCnt
-        //                     ack_cnt_reg_raw(hash_result, 0, 1, REG_ADD, ackCnt);
-        //                 } else {
-        //                     // ackCnt >= 3, read retransmitCnt
-        //                     retransmit_cnt_reg_raw(hash_result, 0, 0, REG_READ, retransmitCnt);
+                        if (dropCount > 0) {
+                            cache_drop(sume_metadata.src_port, dropCount);
+                        }
 
-        //                     if (retransmitCnt == 0) {
-        //                         // N = 1 -- haven't retransmitted
-        //                         // resend pkt
-        //                         cache_read();
+                        // update pkts_cached_cnt & earliest_seq_no registers
+                        pkts_cached_cnt_reg_raw(hash_result, pktsCached-dropCount, 0, REG_WRITE, pktsCached);
+                        earliest_seq_no_reg_raw(hash_result, p.tcp.ackNo, 0, REG_WRITE, earliestSeqNo);
 
-        //                         // retransmitCnt++
-        //                         retransmit_cnt_reg_raw(hash_result, 0, 1, REG_ADD, retransmitCnt);
+                        // read ackCnt
+                        ack_cnt_reg_raw(hash_result, 0, 0, REG_READ, ackCnt);
 
-        //                         // send this pkt to host with ACK flag = 0
-        //                         p.tcp.flags ^= ACK_MASK;
-        //                     } else {
-        //                         // already retransmitted -- send pkt to src "as-is"
-        //                         // reset retransmitCnt
-        //                         retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     } else { 
-        //         // not an ACK packet
-        //         compute_flow_id(0);
-        //         // compute hash of 5-tuple to obtain index for seq_no register
-        //         hash_lrc(digest_data.flow_id, hash_result); 
+                        if (ackCnt < 3) {
+                            // if ackCnt < 3, send pkt to src "as-is" & increment ackCnt
+                            ack_cnt_reg_raw(hash_result, 0, 1, REG_ADD, ackCnt);
+                        } else {
+                            // ackCnt >= 3, read retransmitCnt
+                            retransmit_cnt_reg_raw(hash_result, 0, 0, REG_READ, retransmitCnt);
 
-        //         // metadata for register access
-        //         bit<32> latestSeqNo;
+                            if (retransmitCnt == 0) {
+                                // haven't retransmitted -- retransmitCnt < N = 1
+                                // resend pkt
+                                cache_read(sume_metadata.src_port);
 
-        //         // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
-        //         if (retransmit.apply().hit) {
-        //             // read the latest seqNo
-        //             seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
+                                // retransmitCnt++
+                                retransmit_cnt_reg_raw(hash_result, 0, 1, REG_ADD, retransmitCnt);
 
-        //             if (p.tcp.seqNo > latestSeqNo) {
-        //                 // new package -- add pkt to cache_queue
-        //                 cache_write(sume_metadata.dstPort);
-        //                 // update latest seqNo
-        //                 seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, latestSeqNo);
-        //             } // else it's an old pkt that we have already cached -- do nothing
-        //         } 
-        //     }
-        // }
+                                // send this pkt to host with ACK flag = 0
+                                p.tcp.flags = p.tcp.flags ^ ACK_MASK;
+                            } else {
+                                // already retransmitted -- send pkt to src "as-is"
+                                // reset retransmitCnt
+                                retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
+                            }
+                        }
+                    }
+                }
+            } else { 
+                // not an ACK packet
+                compute_flow_id(0);
+
+                // compute hash of 5-tuple to obtain index for seq_no register
+                hash_lrc(digest_data.flow_id, hash_result); 
+
+                // metadata for register access
+                bit<32> latestSeqNo;
+                bit<32> earliestSeqNo;
+                bit<32> pkts_cached;
+
+                // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
+                if (retransmit.apply().hit) {
+                    // initialise the earliestSeqNo if it has not been init
+                    earliest_seq_no_reg_raw(hash_result, 0, 0, REG_READ, earliestSeqNo);
+                    if (earliestSeqNo == 0) {
+                        earliest_seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, earliestSeqNo);
+                    }
+
+                    // read the latest seqNo
+                    seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
+
+                    if (p.tcp.seqNo > latestSeqNo) {
+                        // new package -- add pkt to cache_queue
+                        cache_write(sume_metadata.dst_port);
+
+                        // increment pkts_cached register
+                        pkts_cached_cnt_reg_raw(hash_result, 0, 1, REG_ADD, pkts_cached);
+
+                        // update latest seqNo
+                        seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, latestSeqNo);
+                    } // else it's an old pkt that we have already cached -- do nothing
+                } 
+            }
+        }
     }
 }
 
