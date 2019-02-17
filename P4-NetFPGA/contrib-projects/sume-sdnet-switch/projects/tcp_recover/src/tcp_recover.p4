@@ -286,17 +286,26 @@ control TopPipe(inout Parsed_packet p,
         }
         
         if (p.tcp.isValid()) {
-            // metadata for seq_no index register access
-            bit<HASH_WIDTH> hash_result;
-
-            // check if it's an ACK packet
+            // check if it's an ACK packet to compute flow_id
             if ((p.tcp.flags & ACK_MASK) >> ACK_POS == 1) {
-                // Is an ACK packet
+                // Is an ACK packet -- compute flow_id with src and dst swapped
                 compute_flow_id(1);
+            } else {
+                // not an ACK packet
+                compute_flow_id(0);
+            }
+
+            // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
+            if (retransmit.apply().hit) {
+                // metadata for index register access
+                bit<HASH_WIDTH> hash_result;
+                // compute hash of 5-tuple to obtain index for seq_no register 
+                hash_lrc(digest_data.flow_id, hash_result); 
                 
-                    // compute hash of 5-tuple to obtain index for seq_no register, with src and dst swapped
-                    hash_lrc(digest_data.flow_id, hash_result); 
-                    
+                // check if it's an ACK packet
+                if ((p.tcp.flags & ACK_MASK) >> ACK_POS == 1) {
+                    // Is an ACK packet
+                
                     // metadata for register access
                     bit<32> latestSeqNo;
                     bit<32> earliestSeqNo;
@@ -305,8 +314,6 @@ control TopPipe(inout Parsed_packet p,
                     bit<32> pktsCached;
                     bit<32> dropCount;
 
-                // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
-                if (retransmit.apply().hit) { 
                     // read the latest seqNo
                     seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
 
@@ -363,42 +370,34 @@ control TopPipe(inout Parsed_packet p,
                             }
                         }
                     }
+                } else { 
+                    // not an ACK packet
+                    // metadata for register access
+                    bit<32> latestSeqNo;
+                    bit<32> earliestSeqNo;
+                    bit<32> pkts_cached; 
+
+                    // initialise the earliestSeqNo if it has not been init
+                    earliest_seq_no_reg_raw(hash_result, 0, 0, REG_READ, earliestSeqNo);
+                    if (earliestSeqNo == 0) {
+                        earliest_seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, earliestSeqNo);
+                    } 
+
+                    // read the latest seqNo
+                    seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
+
+                    if (p.tcp.seqNo > latestSeqNo) {
+                        // new package -- add pkt to cache_queue
+                        cache_write(sume_metadata.dst_port);
+
+                        // increment pkts_cached register
+                        pkts_cached_cnt_reg_raw(hash_result, 0, 1, REG_ADD, pkts_cached);
+
+                        // update latest seqNo
+                        seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, latestSeqNo);
+                    } // else it's an old pkt that we have already cached -- do nothing
                 } 
-            } else { 
-                // not an ACK packet
-                compute_flow_id(0);
-
-                // compute hash of 5-tuple to obtain index for seq_no register
-                hash_lrc(digest_data.flow_id, hash_result); 
-
-                // metadata for register access
-                bit<32> latestSeqNo;
-                bit<32> earliestSeqNo;
-                bit<32> pkts_cached; }
-
-                // if the flow_id is in our match-action table, apply our fast recover, otherwise do nothing
-                // if (retransmit.apply().hit) {
-                    // // initialise the earliestSeqNo if it has not been init
-                    // earliest_seq_no_reg_raw(hash_result, 0, 0, REG_READ, earliestSeqNo);
-                    // if (earliestSeqNo == 0) {
-                    //     earliest_seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, earliestSeqNo);
-                    // } 
-
-            //         // read the latest seqNo
-            //         seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
-
-            //         if (p.tcp.seqNo > latestSeqNo) {
-            //             // new package -- add pkt to cache_queue
-            //             cache_write(sume_metadata.dst_port);
-
-            //             // increment pkts_cached register
-            //             pkts_cached_cnt_reg_raw(hash_result, 0, 1, REG_ADD, pkts_cached);
-
-            //             // update latest seqNo
-            //             seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, latestSeqNo);
-            //         } // else it's an old pkt that we have already cached -- do nothing
-            //     } 
-            // }
+            }
         }
     }
 }
