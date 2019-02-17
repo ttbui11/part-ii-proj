@@ -28,7 +28,7 @@
 # @NETFPGA_LICENSE_HEADER_END@
 #
 
-export P4_PROJECT_NAME=switch_calc 
+export P4_PROJECT_NAME=tcp_recover 
 export NF_PROJECT_NAME=simple_sume_switch
 export SUME_FOLDER=${HOME}/home/ico/Projects/part-ii-proj/P4-NetFPGA
 export SUME_SDNET=${SUME_FOLDER}/contrib-projects/sume-sdnet-switch
