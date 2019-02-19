@@ -1,4 +1,4 @@
-# Part II Indiviudal Project
+# Part II Individual Project
 
 [here](test)
 $\int_{a}{b}$
