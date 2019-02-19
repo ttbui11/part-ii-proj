@@ -71,6 +71,8 @@ def applyPkt(pkt, ingress, time):
 def expPkt(pkt, egress, drop):
     pktsExpected.append(pkt)
     sss_sdnet_tuples.sume_tuple_expect['dst_port'] = nf_port_map[egress]
+    sss_sdnet_tuples.sume_tuple_expect['drop'] = drop 
+    sss_sdnet_tuples.dig_tuple_expect['flow_id'] = 792281630049477301766976897096
     sss_sdnet_tuples.write_tuples()
     if egress in ["nf0","nf1","nf2","nf3"] and drop == False:
         nf_expected[nf_id_map[egress]].append(pkt)
@@ -119,26 +121,26 @@ PKT_SIZE = 1000
 MIN_PKT_SIZE = 64
 HEADER_SIZE = 54 # size of TCP header
 
-# # Create a single TCP flow using the given 5-tuple parameters of the given size
-# def make_flow(srcIP, dstIP, sport, dport, flow_size):
-#     pkts = []
-#     # make the SYN PKT
-#     pkt = Ether(dst=MAC1, src=MAC2) / IP(src=srcIP, dst=dstIP) / TCP(sport=sport, dport=dport, flags='S')
-#     pkt = pad_pkt(pkt, MIN_PKT_SIZE)
-#     pkts.append(pkt)
-#     # make the data pkts
-#     size = flow_size
-#     while size >= PKT_SIZE:
-#         pkt = Ether(dst=MAC1, src=MAC2) / IP(src=srcIP, dst=dstIP) / TCP(sport=sport, dport=dport, flags='A')
-#         pkt = pad_pkt(pkt, PKT_SIZE + HEADER_SIZE)
-#         pkts.append(pkt)
-#         size -= PKT_SIZE
-#     # make the FIN pkt
-#     size = max(MIN_PKT_SIZE - HEADER_SIZE, size)
-#     pkt = Ether(dst=MAC1, src=MAC2) / IP(src=srcIP, dst=dstIP) / TCP(sport=sport, dport=dport, flags='F')
-#     pkt = pad_pkt(pkt, HEADER_SIZE + size)
-#     pkts.append(pkt)
-#     return pkts
+# Create a single TCP flow using the given 5-tuple parameters of the given size
+def make_flow(srcIP, dstIP, sport, dport, flow_size):
+    pkts = []
+    # make the SYN PKT
+    pkt = Ether(dst=MAC1, src=MAC2) / IP(src=srcIP, dst=dstIP) / TCP(sport=sport, dport=dport, flags='S')
+    pkt = pad_pkt(pkt, MIN_PKT_SIZE)
+    pkts.append(pkt)
+    # make the data pkts
+    size = flow_size
+    while size >= PKT_SIZE:
+        pkt = Ether(dst=MAC1, src=MAC2) / IP(src=srcIP, dst=dstIP) / TCP(sport=sport, dport=dport, flags='A')
+        pkt = pad_pkt(pkt, PKT_SIZE + HEADER_SIZE)
+        pkts.append(pkt)
+        size -= PKT_SIZE
+    # make the FIN pkt
+    size = max(MIN_PKT_SIZE - HEADER_SIZE, size)
+    pkt = Ether(dst=MAC1, src=MAC2) / IP(src=srcIP, dst=dstIP) / TCP(sport=sport, dport=dport, flags='F')
+    pkt = pad_pkt(pkt, HEADER_SIZE + size)
+    pkts.append(pkt)
+    return pkts
 
 # # randomly interleave the flow's packets
 # def mix_flows(flows):
@@ -166,11 +168,14 @@ i = 0
 
 # Final dummy pkt (not dropped) - used for barrier in SUME simulations
 drop = False
-pkt = Ether(dst="08:11:11:11:11:08") / IP()
-pkt = pad_pkt(pkt, 64)
+# pkt = Ether(dst="08:11:11:11:11:08") / IP() 
+# pkt = pad_pkt(pkt, 64)
+pkt = Ether(dst=MAC1, src=MAC2) / IP(src=IP1_src, dst=IP1_dst) / TCP(sport=sport, dport=dport, flags='S')
+pkt = pad_pkt(pkt, MIN_PKT_SIZE)
 ingress = "nf0"
-i += 1
 applyPkt(pkt, ingress, i)
+
+
 egress = "nf0"
 expPkt(pkt, egress, drop)
 

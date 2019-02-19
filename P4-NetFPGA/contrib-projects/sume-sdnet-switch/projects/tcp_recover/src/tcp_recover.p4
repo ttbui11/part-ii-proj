@@ -72,7 +72,19 @@ typedef bit<32> IPv4Addr_t;
 @Xilinx_ControlWidth(0)
 extern void hash_lrc(in bit<104> in_data, out bit<HASH_WIDTH> result);
 
-// latest_seq_no register (per flow)
+/* odd_even register -- since each stateful atom (i.e. register) can only be accessed one time in the P4 code,
+ * this is to index the oddity of the pkt. If the count is odd, read from odd, update to even and vice versa 
+ * Multiple calls to the extern function will generate multiple instances of the atom and you will get unexpected results.
+ */
+@Xilinx_MaxLatency(1)
+@Xilinx_ControlWidth(HASH_WIDTH)
+extern void odd_even_reg_raw(in bit<HASH_WIDTH> index,
+                             in bit<32> newVal,
+                             in bit<32> incVal,
+                             in bit<8> opCode,
+                             out bit<32> result);
+
+// latest_seq_no register
 @Xilinx_MaxLatency(64)
 @Xilinx_ControlWidth(HASH_WIDTH)
 extern void seq_no_reg_raw(in bit<HASH_WIDTH> index,
@@ -81,7 +93,15 @@ extern void seq_no_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<8> opCode,
                              out bit<32> result);
 
-// earliest_seq_no register (per flow)
+@Xilinx_MaxLatency(64)
+@Xilinx_ControlWidth(HASH_WIDTH)
+extern void seq_no_even_reg_raw(in bit<HASH_WIDTH> index,
+                             in bit<32> newVal,
+                             in bit<32> incVal,
+                             in bit<8> opCode,
+                             out bit<32> result);
+
+// earliest_seq_no register
 @Xilinx_MaxLatency(64)
 @Xilinx_ControlWidth(HASH_WIDTH)
 extern void earliest_seq_no_reg_raw(in bit<HASH_WIDTH> index,
@@ -90,14 +110,22 @@ extern void earliest_seq_no_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<8> opCode,
                              out bit<32> result);                            
 
-// pkts_cached_cnt (per flow)
+// pkts_cached_cnt 
 @Xilinx_MaxLatency(64)
 @Xilinx_ControlWidth(HASH_WIDTH)
-extern void pkts_cached_cnt_reg_raw(in bit<HASH_WIDTH> index,
+extern void pkts_cached_cnt_odd_reg_raw(in bit<HASH_WIDTH> index,
                              in bit<32> newVal,
                              in bit<32> incVal,
                              in bit<8> opCode,
-                             out bit<32> result);                         
+                             out bit<32> result); 
+                             
+@Xilinx_MaxLatency(64)
+@Xilinx_ControlWidth(HASH_WIDTH)
+extern void pkts_cached_cnt_even_reg_raw(in bit<HASH_WIDTH> index,
+                             in bit<32> newVal,
+                             in bit<32> incVal,
+                             in bit<8> opCode,
+                             out bit<32> result);                                  
 
 
 // ack_cnt register
@@ -300,8 +328,12 @@ control TopPipe(inout Parsed_packet p,
                 // metadata for index register access
                 bit<HASH_WIDTH> hash_result;
                 // compute hash of 5-tuple to obtain index for seq_no register 
-                hash_lrc(digest_data.flow_id, hash_result); 
+                hash_lrc(digest_data.flow_id, hash_result);
                 
+                // increment odd_even counter and store in bit<32> count
+                bit<32> count;
+                odd_even_reg_raw(hash_result, 0, 1, REG_ADD, count);
+
                 // check if it's an ACK packet
                 if ((p.tcp.flags & ACK_MASK) >> ACK_POS == 1) {
                     // Is an ACK packet
@@ -319,84 +351,92 @@ control TopPipe(inout Parsed_packet p,
 
                     if (p.tcp.ackNo > latestSeqNo) {
                         // this ACK number is more than latestSeqNo -- update, drop all cached pkts and reset counters
-                        pkts_cached_cnt_reg_raw(hash_result, 0, 0, REG_READ, dropCount);
+                        if (count % 2 == 1) { // ODD 
+                            pkts_cached_cnt_odd_reg_raw(hash_result, 0, 0, REG_READ, dropCount);
 
-                        // drop cached pkts
-                        cache_drop(sume_metadata.src_port,dropCount);
+                            // drop cached pkts
+                            cache_drop(sume_metadata.src_port,dropCount);
 
-                        // reset counters
-                        ack_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, ackCnt);
-                        retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
-                        pkts_cached_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, dropCount);
-                    } else {
-                        // drop some pkts -- e.g. cache 1, 2, 3; receive ack 2 --> drop 1
-                        // calculate number of pkts to drop 
-                        pkts_cached_cnt_reg_raw(hash_result, 0, 0, REG_READ, pktsCached); // number of pkts cached
-                        earliest_seq_no_reg_raw(hash_result, 0, 0, REG_READ, earliestSeqNo); // earliest seqNo          
-                        dropCount = ((p.tcp.ackNo-earliestSeqNo)/PKT_SIZE);
+                            // reset counters
+                            ack_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, ackCnt);
+                            retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
+                            pkts_cached_cnt_even_reg_raw(hash_result, 0, 0, REG_WRITE, dropCount);
 
-                        if (dropCount > 0) {
-                            cache_drop(sume_metadata.src_port, dropCount);
-                        }
-
-                        // update pkts_cached_cnt & earliest_seq_no registers
-                        pkts_cached_cnt_reg_raw(hash_result, pktsCached-dropCount, 0, REG_WRITE, pktsCached);
-                        earliest_seq_no_reg_raw(hash_result, p.tcp.ackNo, 0, REG_WRITE, earliestSeqNo);
-
-                        // read ackCnt
-                        ack_cnt_reg_raw(hash_result, 0, 0, REG_READ, ackCnt);
-
-                        if (ackCnt < 3) {
-                            // if ackCnt < 3, send pkt to src "as-is" & increment ackCnt
-                            ack_cnt_reg_raw(hash_result, 0, 1, REG_ADD, ackCnt);
                         } else {
-                            // ackCnt >= 3, read retransmitCnt
-                            retransmit_cnt_reg_raw(hash_result, 0, 0, REG_READ, retransmitCnt);
+                            pkts_cached_cnt_odd_reg_raw(hash_result, 0, 0, REG_READ, dropCount);
+                        } // uncomment this `else` clause and it will work 
 
-                            if (retransmitCnt == 0) {
-                                // haven't retransmitted -- retransmitCnt < N = 1
-                                // resend pkt
-                                cache_read(sume_metadata.src_port);
+                    // } else {
+                    //     // drop some pkts -- e.g. cache 1, 2, 3; receive ack 2 --> drop 1
+                    //     // calculate number of pkts to drop 
+                    //     pkts_cached_cnt_reg_raw(hash_result, 0, 0, REG_READ, pktsCached); // number of pkts cached
+                    //     earliest_seq_no_reg_raw(hash_result, 0, 0, REG_READ, earliestSeqNo); // earliest seqNo          
+                    //     dropCount = ((p.tcp.ackNo-earliestSeqNo)/PKT_SIZE);
 
-                                // retransmitCnt++
-                                retransmit_cnt_reg_raw(hash_result, 0, 1, REG_ADD, retransmitCnt);
+                    //     if (dropCount > 0) {
+                    //         cache_drop(sume_metadata.src_port, dropCount);
+                    //     }
 
-                                // send this pkt to host with ACK flag = 0
-                                p.tcp.flags = p.tcp.flags ^ ACK_MASK;
-                            } else {
-                                // already retransmitted -- send pkt to src "as-is"
-                                // reset retransmitCnt
-                                retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
-                            }
-                        }
-                    }
-                } else { 
-                    // not an ACK packet
-                    // metadata for register access
-                    bit<32> latestSeqNo;
-                    bit<32> earliestSeqNo;
-                    bit<32> pkts_cached; 
+                    //     // update pkts_cached_cnt & earliest_seq_no registers
+                    //     pkts_cached_cnt_reg_raw(hash_result, pktsCached-dropCount, 0, REG_WRITE, pktsCached);
+                    //     earliest_seq_no_reg_raw(hash_result, p.tcp.ackNo, 0, REG_WRITE, earliestSeqNo);
 
-                    // initialise the earliestSeqNo if it has not been init
-                    earliest_seq_no_reg_raw(hash_result, 0, 0, REG_READ, earliestSeqNo);
-                    if (earliestSeqNo == 0) {
-                        earliest_seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, earliestSeqNo);
+                    //     // read ackCnt
+                    //     ack_cnt_reg_raw(hash_result, 0, 0, REG_READ, ackCnt);
+
+                    //     if (ackCnt < 3) {
+                    //         // if ackCnt < 3, send pkt to src "as-is" & increment ackCnt
+                    //         ack_cnt_reg_raw(hash_result, 0, 1, REG_ADD, ackCnt);
+                    //     } else {
+                    //         // ackCnt >= 3, read retransmitCnt
+                    //         retransmit_cnt_reg_raw(hash_result, 0, 0, REG_READ, retransmitCnt);
+
+                    //         if (retransmitCnt == 0) {
+                    //             // haven't retransmitted -- retransmitCnt < N = 1
+                    //             // resend pkt
+                    //             cache_read(sume_metadata.src_port);
+
+                    //             // retransmitCnt++
+                    //             retransmit_cnt_reg_raw(hash_result, 0, 1, REG_ADD, retransmitCnt);
+
+                    //             // send this pkt to host with ACK flag = 0
+                    //             p.tcp.flags = p.tcp.flags ^ ACK_MASK;
+                    //         } else {
+                    //             // already retransmitted -- send pkt to src "as-is"
+                    //             // reset retransmitCnt
+                    //             retransmit_cnt_reg_raw(hash_result, 0, 0, REG_WRITE, retransmitCnt);
+                    //         }
+                    //     }
                     } 
+                           
+                // } else { 
+                //     // not an ACK packet
+                //     // metadata for register access
+                //     bit<32> latestSeqNo;
+                //     bit<32> earliestSeqNo;
+                //     bit<32> pkts_cached; 
 
-                    // read the latest seqNo
-                    seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
+                //     // initialise the earliestSeqNo if it has not been init
+                //     earliest_seq_no_reg_raw(hash_result, 0, 0, REG_READ, earliestSeqNo);
+                //     if (earliestSeqNo == 0) {
+                //         earliest_seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, earliestSeqNo);
+                //     } 
 
-                    if (p.tcp.seqNo > latestSeqNo) {
-                        // new package -- add pkt to cache_queue
-                        cache_write(sume_metadata.dst_port);
+                //     // read the latest seqNo
+                //     seq_no_reg_raw(hash_result, 0, 0, REG_READ, latestSeqNo);
 
-                        // increment pkts_cached register
-                        pkts_cached_cnt_reg_raw(hash_result, 0, 1, REG_ADD, pkts_cached);
+                //     if (p.tcp.seqNo > latestSeqNo) {
+                //         // new package -- add pkt to cache_queue
+                //         cache_write(sume_metadata.dst_port);
 
-                        // update latest seqNo
-                        seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, latestSeqNo);
-                    } // else it's an old pkt that we have already cached -- do nothing
-                } 
+                //         // increment pkts_cached register
+                //         pkts_cached_cnt_reg_raw(hash_result, 0, 1, REG_ADD, pkts_cached);
+
+                //         // update latest seqNo
+                //         seq_no_reg_raw(hash_result, p.tcp.seqNo, 0, REG_WRITE, latestSeqNo);
+                //     } // else it's an old pkt that we have already cached -- do nothing
+                // } 
+                }
             }
         }
     }
