@@ -1,0 +1,3 @@
+[submodule "P4-NetFPGA"]
+	path = P4-NetFPGA
+	url = https://github.com/NetFPGA/P4-NetFPGA-live
