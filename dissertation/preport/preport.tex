@@ -1,0 +1,62 @@
+% Note: this file can be compiled on its own, but is also included by
+% diss.tex (using the docmute.sty package to ignore the preamble)
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage[margin=25mm]{geometry}
+\usepackage{graphicx}
+\usepackage{parskip}
+\usepackage[htt]{hyphenat} % to use hyphen in \texttt
+
+\begin{document}
+
+\begin{center}
+\Large
+Computer Science Tripos -- Part II -- Progress Report\\[4mm]
+\LARGE
+An accelerated, network-assisted TCP recovery%\[4mm]
+
+\large
+T. T. Bui, Downing College\\
+\large
+ttb29@cam.ac.uk
+
+1$^{st}$ February 2019
+\end{center}
+
+\vspace{3mm}
+
+\textbf{Project Supervisor:} Dr Noa Zilberman
+
+\textbf{Director of Studies:} Dr Graeme Jenkinson
+
+\textbf{Project Overseers:} Dr Markus Kuhn, Dr Eva Kalyvianaki \& Dr Nada Amin
+
+%% Main document
+
+\section*{Work Completed}
+
+Over the Michaelmas term, I have studied thoroughly the TCP congestion control and recovery mechanisms. With that understanding, I have completed the design for the architecture of my application. It was primarily based around the SimpleSumeSwitch Architecture \cite{simple}. 
+
+With regard to the programming tools and equipment, I have familiarised myself with both the P4 programming language and the P4$\rightarrow$NetFPGA workflow by working through the available tutorials. After that, I implemented the architecture and the buffering logic in P4. This was a non-trivial task, as the P4 language and the P4$\rightarrow$NetFPGA platform are rather new with a growing community and only have a few publicly available documentation. With popular programming languages like Java or C++, one can easily ask questions and find help on \texttt{Stack Overflow}. With P4, the main platform for asking questions and getting help is through the \texttt{NetFPGA SUME Beta list} \cite{mailing} mailing list. I have also completed setting up the machine with a NetFPGA SUME board installed for development.
+
+There was an unexpected difficulty that came up during the Michaelmas vacation that made the project currently slower than expected by 2 weeks. Originally, the plan was to have the project written entirely in P4 language. Unfortunately, what I am trying to do cannot really be properly expressed in P4. P4 programs are meant to operate on packet headers only while what I am currently looking for is a way to express programmable buffering logic as opposed to programmable packet processing. To overcome this issue, I plan to add a custom HDL module that follows the SimpleSumeSwitch pipeline which will buffer packets to be retransmitted.
+
+While I was held off by the abovementioned difficulty, I started to write a skeleton for the dissertation.
+
+\section*{Work to be Done}
+
+Currently, with the change in plan, I am finishing up the P4 code for the application. I will need to test and provide a performance evaluation of the design. Once that is done, I need to demonstrate its interoperability with a software-based client/application to meet my success criteria.
+
+After that, I will need to continue implementing the extensions to the project. I am positive that I will be able to implement some of the extensions proposed.
+
+\begin{thebibliography}{1}
+	\bibitem{simple} 
+	SimpleSumeSwitch Architecture (v1.2.1 and Earlier), \\\texttt{https://github.com/NetFPGA/P4-NetFPGA-public/wiki/SimpleSumeSwitch-Architecture-(v1.2.1-and-Earlier).}
+	
+	\bibitem{mailing}
+	Cl-netfpga-sume-beta -- NetFPGA SUME Beta list, 
+	\\\texttt{https://lists.cam.ac.uk/mailman/listinfo/cl-netfpga-sume-beta}
+	
+\end{thebibliography}
+
+\end{document}

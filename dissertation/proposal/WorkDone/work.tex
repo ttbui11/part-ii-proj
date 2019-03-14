@@ -1,0 +1,39 @@
+\section*{\fontsize{18pt}{1}\selectfont Work to be Done}
+
+The main core component of the project is to be able to apply the KVS concept, where the sequence number and flow Id of a packet are the key and the packet is the value, to implement TCP fast recovery. In order to do that, the following sub-tasks must be done:
+
+\begin{enumerate}
+	
+	\item First, since the project is done on NetFPGA using P4 programming language, both of which I am not familar with, I first have to study them thoroughly and be proficient working with the platform.
+	
+	\item I would also need to study and gain a better understanding of KVS applications, TCP congestion control and recovery mechanisms, as well as their use cases (e.g. High Frequency Trading, in-datacenter latency sensitive applications, etc.).
+	
+	\item The next stage will be to design the architecture for the application. This is a non-trivial process. Generally, it will be to try to map the application to a match-action pipeline.
+	
+	\item The fourth stage involves implementing the architecture in code. The program, which will be written in P4, will have the basic functionalities such as:
+	\begin{itemize}
+		\item A basic L3 switch function and TCP decoding (send TCP, read the flow information from the table/register)
+		
+		\item Matching packets to a "\emph{key}" (its flow Id):
+			\begin{itemize}
+				\item If the key is of a new packet, store it (SET()).
+				\item If the key is of a DUP ACK, read the packet and re-send (GET()).
+				\item If the number of DUP ACKs is greater than $N$, do not resend. Instead, forward to host as the standard convention of handling TCP.
+				\item Do not resend if the flow Id is not in a "selected" table. In other words, use the KVS only if the flow Id matches a predefined set of flow Ids, or a different predefined rule by the user.
+			\end{itemize}		
+	
+	\end{itemize}
+	
+	\item \textbf{The simulation stage:} perform functionality test by simulating the program using bmv2 or Xilinx simulators to ensure correctness. 
+	
+	\item After it runs smoothly in the software, it will then be compiled to the hardware. Ensure that the basic functionalities mentioned above work in hardware.
+	
+	\item \textbf{The hardware stage:} demonstrate interoperability with a software-based client/application.
+	
+	Possibly, I will implement a drop $1:N$ packets at the server to force DUP ACKs, and I will also be using a synthetic benchmark such as \emph{multilate} \cite{multilate} -- a memcached benchmark -- or OSNT \cite{OSNT} as the applications on top of the network. The criterion to evaluate the performance is the flow completion time. There is no intention to use network simulators such as ns2, omnet++, etc. This is outside the scope of this project.
+	
+	The aim for this stage is to get a working prototype in hardware that supports a single flow and single packet size, and evaluate on its performance.
+	
+	\item Once the prototype is up and working, I need to implement further extensions to allows the prototype to support a variety of parameters/conditions (which will be discussed in \textbf{Possible Extensions} section).
+		
+\end{enumerate}

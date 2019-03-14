@@ -1,0 +1,59 @@
+data path ===> 
+
+have M/A match action == instruction => good for pipeline. don't want something that go do 1 thing then return data.
+
+
+HDR 1 -> table (match table). look up for the instruction (which saved in the packet). Data is pipelined. reverse of CPU
+
+input
+Parser: take data and write to small unites, eth hdr, ipv4, val1, etc.
+m/a stages: look on eth hdr, if != ipv4, next stage
+m/a stages: look on ipv4, addr = x -> send to port 1, else send to port 2
+extern (not written in p4)
+
+
+study1: learn the language P4, setup the platform NetFPGA, run examples/tutorials
+study2: study of the applications -> protocols, modes of operation (memcached: binary, ascii, tcp or udp, set, get, etc.)
+
+architecture: mapping the application to a match/action pipeline
+
+design: coding and and simulation ...  software
+    --> testing (hardware)
+
+goal: finish design by winter break.
+
+testing, debug and extensions: start with fixed size keys and values
+  - supporting more ports, protocols, key-sizes
+  - performance (from top to here is functionality)
+  - 
+
+success criteria
+  - mapping the appl to a m/a pipeline  instr pipelin -> database pipeline
+  - design runs on hardware
+  - support the 
+  - run real application
+
+Oct 16, 2018
+Applications that are offloaded:
+- Network functions (DNS server,   --> In-network compute is a dumb idea - hotnet2017  by Marco Cannini 
+- Applications - Memcached, various caching (netCache, netChain), machine learning
+- Distributed systems function such as consensus (NetPaxos, p4Xos)
+
+- Doing in the network provides lower latency, higher throughput. Focus in the project (goal) is lower latency. Extension is higher throughput.
+
+client --- switch --- server . Many packet drops happen in the NIC of the server, due to the DMA?? -> DUP ACKs. response to that quickly and send the packet. instead of let the DUP ACKs back to the client. Saving microseconds. don't need to go to the network stack (cost microseconds). Delay by prospect that are not due to network.
+
+HFT  use cases or In-Datacenter latency sensitive application because care about microsec latency.  
+
+- Kernel stack:  user space
+		OS
+		Driver
+		PCI express
+		NIC   <----- traffic coming in
+
+from driver -> kernel of OS --> network stack --> user space. Kernel bypass skip OS, go str8 to the user space. DPDK
+
+
+
+Test for performances: WILL not be using tools such as IPerf (test throughput of the channel) flow completions time. queries per second (if run multilate)
+

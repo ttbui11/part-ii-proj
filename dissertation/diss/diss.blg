@@ -1,0 +1,62 @@
+This is BibTeX, Version 0.99d (TeX Live 2018)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: diss.aux
+The style file: IEEEtranN.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: References/references.bib
+Warning--I didn't find a database entry for "Moore95"
+-- IEEEtranN.bst version 1.14 (2015/08/26) by Michael Shell.
+-- http://www.michaelshell.org/tex/ieeetran/bibtex/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+** Natbib version - not for normal IEEE work.
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=20001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+
+Done.
+You've used 3 entries,
+            4855 wiz_defined-function locations,
+            961 strings with 8483 characters,
+and the built_in function-call counts, 1915 in all, are:
+= -- 164
+> -- 36
+< -- 9
++ -- 21
+- -- 8
+* -- 111
+:= -- 293
+add.period$ -- 6
+call.type$ -- 3
+change.case$ -- 6
+chr.to.int$ -- 21
+cite$ -- 5
+duplicate$ -- 134
+empty$ -- 149
+format.name$ -- 10
+if$ -- 413
+int.to.chr$ -- 1
+int.to.str$ -- 4
+missing$ -- 23
+newline$ -- 33
+num.names$ -- 3
+pop$ -- 69
+preamble$ -- 1
+purify$ -- 3
+quote$ -- 2
+skip$ -- 138
+stack$ -- 0
+substring$ -- 53
+swap$ -- 83
+text.length$ -- 3
+text.prefix$ -- 0
+top$ -- 6
+type$ -- 46
+warning$ -- 0
+while$ -- 6
+width$ -- 0
+write$ -- 52
+(There was 1 warning)
