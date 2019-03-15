@@ -4,7 +4,7 @@
 %%                                                                            %%
 %% A PhD thesis LaTeX template for Cambridge University Engineering Department%%
 %%                                                                            %%
-%% Version: v2.3.1                                                             %%
+%% Version: v2.3.1                                                            %%
 %% Authors: Krishna Kumar                                                     %%
 %% License: MIT License (c) 2016 Krishna Kumar                                %%
 %% GitHub Repo: https://github.com/kks32/phd-thesis-template/                 %%
@@ -236,7 +236,12 @@ supported!}
 
 % Process options and load class
 \ProcessOptions\relax%
-\LoadClass{book}%
+\LoadClass[openany]{book}% 
+
+% Chapters start at right hand pages by default. So they start at odd numbered pages (1, 3, 5, 7, ..).
+% If the text before ends at page 5, the next chapter starts at page 7. You can add the openany 
+% option to the document class if you would like to suppress this, or just for testing now: 
+% \documentclass[openany]{book}
 
 % ******************************************************************************
 % ******************************** Packages ************************************
@@ -265,7 +270,7 @@ supported!}
 % Hides Contents appearing from TOC, but adds it to bookmarks
 \let\temptableofcontents\tableofcontents
 \renewcommand{\tableofcontents}{
-  \cleardoublepage
+%  \cleardoublepage -- remove the blank page before TOC
   \pdfbookmark[0]{\contentsname}{Contents}
   \temptableofcontents
 }
@@ -750,8 +755,8 @@ wish to left align your text}
   \renewcommand{\headrulewidth}{0pt}
   \renewcommand{\footrulewidth}{0pt}
   \fancyhf{}
-  \fancyhead[LE]{ \rightmark}
-  \fancyhead[RO]{ \leftmark}
+  \fancyhead[LE]{\textit{\rightmark}}
+  \fancyhead[RO]{\textit{\leftmark}}
   \fancyfoot[C]{\thepage}
 }
 
