@@ -1,10 +1,51 @@
 \chapter{Implementation}
+\textit{I give the overview of the project repository. I move on to explain the  }
 
-\section{The SimpleSumeSwitch Architecture}
+\section{Repository Overview}
+
+\dirtree{%
+	.1 P4-NetFPGA.
+		.2 project.
+			.3 simple\_sume\_switch.
+				.4 hw.
+					.5 hdl.
+						.6 nf\_datapath.v*.
+				.4 test.
+					.5 sim\_switch\_default.
+						.6 run.py*.
+			.3 src.
+				.4 tcp\_retransmit.p4*.
+				.4 commands.txt*.
+			.3 testdata.
+				.4 gen\_testdata.py*.
+				.4 digest\_data.py*.
+				.4 sss\_sdnet\_tuples.py*.
+			.3 templates.
+				.4 externs.
+					.5 <externs-name>.
+						.6 hdl.
+							.7 <externs-name>\_template.v*.
+		.2 lib.
+			.3 hw.
+				.4 contrib.
+					.5 cores.
+						.6 sss\_cache\_queues\_v1\_0\_0*.
+				.4 std.
+					.5 cores.
+						.6 output\_arbiter\_v1\_0\_0*.
+}
+
+
 This project will work mainly with a NetFPGA SUME board \cite{zilberman2014netfpga}, using P4 programming language. I will be using the P4-NetFPGA workflow, which provides infrastructure to compile P4 programs to NetFPGA \cite{fpga}. Apart from that, everything else will be built from scratch.
 
-I have no prior experience with either NetFPGA or P4, but this will be mitigated through self-learning in which I will make use of the online tutorials, Google's resources and the P4 community documentation, as well as the experience of my supervisors. 
 
-\section{The Cache Queue}
-The relevant Tripos courses that can serve as a starting point for this project are primarily: \emph{Computer Networking}, \emph{Principles of Communications} and \emph{ECAD and Architecture Practical Classes}. Since the courses are introductory, I will also consult Part III's \emph{High Performance Networking} course. I also plan to bridge any knowledge gap through extensive personal reading as well as help from my project supervisor.
-%\section{}
+I have no prior experience with either NetFPGA or P4, but this will be mitigated through self-learning in which I will make use of the online tutorials, Google's resources and the P4 community documentation, as well as the experience of my supervisors. 
+\\
+
+\section{Software Implementation}
+	\subsection{The Parser}
+	\subsection{The SimpleSumeSwitch}
+	\subsection{The Deparser}
+
+\section{Hardware Implementation}
+	

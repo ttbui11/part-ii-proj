@@ -1,38 +1,61 @@
 \chapter{Preparation}
 \textit{In this chapter, I discuss the Transmission Control Protocol in more dteail. This is followed by a discussion of sftware deliverables, formal requirements, existing libraries and tools levarage, workflow and starting point.
 }
-\section{Transmission Control Protocol}
-\subsection{Test}
+
+\section{Refinement of the project proposal}
+Empty for now.
 
 \section{Software Used}
 	\subsection{Programming Languages}
-	I used \textbf{P4} and \textbf{Python} for this project.
+	In this project, I used a multitude of languages, including \textbf{P4}, \textbf{Python}, \textbf{Verilog} and \textbf{Tcl}.
 	
-	In this project, I mainly used the \textbf{P4} programming language \cite{p4.org}. It is a language designed to allow the programming of packet forwarding planes. Besides, unlike general purpose languages such as C or Python, P4 is domain-specific with a number of constructs optimized around network data forwarding, hence is well suited to such a network application.
+	\textbf{P4}: \textbf{P4} programming language \cite{p4.org}. It is a language designed to allow the programming of packet forwarding planes. Besides, unlike general purpose languages such as C or Python, P4 is domain-specific with a number of constructs optimized around network data forwarding, hence is well suited to such a network application.
+
 	
-	\textbf{Python}: 
+	\textbf{Python}: Python was used extensively in the evaluation because of \texttt{scapy} is a Python module that enables the user to send, sniff, dissect and forge network packets. This capability allows me to write unit tests for my program by building customised packets, sending and checking them.
+	
+	\textbf{Verilog}: Verilog was used to implement certain HDL modules within the P4-NetFPGA platform, in order to add or modify certain functionalities to suit the purpose of my design. It is the language of choice of the P4-NetFPGA platform.
+	
+	\textbf{Tcl}:
 	
 	I also made use of the \texttt{make} build automation tool to automate project builds, tests and benchmarks.
+	
 	\subsection{P4-NetFPGA Platform}
 	a
 	\subsection{The NetFPGA SUME board}
 	
 	\subsection{Development Environment}
-	\textbf{Git}: I used \texttt{git} for the 
+	\textbf{Git}: I used Git for the I used branches to implement large changes, allowing me to backtrack
+	
+	\subsection{High-level Architecture (network level and system level)}
+	Empty for now
 	
 \section{Starting Point}
-This project uses the knowledge about TCP introduced in the Part IB \textit{Computer Networking} course. 
+This project uses the knowledge about TCP introduced in the Part IB \textit{Computer Networking} course and the experience in Electronic Computer-aided Design (ECAD) through learning a design-flow for Field Programmable Gate Arrays (FPGAs) from Part IB \textit{ECAD and Architecture Practical Classes}.
 
-During the development of this project, I made use of the materials covered in the following Part II and Part III course:
-\begin{itemize}
-	\item \textit{Principle of Communications} --- Test
-	\item \textit{High Performance Networking} --- ;
-	\item \textit{\LaTeX \ and Matlab} --- typesetting the project proposal and dissertation.
+During the development of this project, I acquired further knowledge from the materials covered in the following Part II and Part III courses:%
+
+\begin{itemize}[itemsep=4pt]
+	\item \textit{High Performance Networking} --- ;%
+	\item \textit{Principle of Communications} --- Test;%
+	\item \textit{\LaTeX \ and Matlab} --- typesetting the project proposal and dissertation.%
 \end{itemize}
 
-All code was, using the . Apart from 
+In terms of , I had little prior experience with P4 Programming Language and the P4-NetFPGA framework. I had some prior experience in Python and Git.
 
-In terms of , I had little prior experience with P4 Programming Language and the P4-NetFPGA framework.  I had significant prior experience in Python and Git.
+All code was written from scratch, using the . Apart from 
 
+\section{Project Workflow}
+\subsection{Setting Up The Development Environment}
+\subsection{Getting}
+
+\subsection{Design approach / workflow diagrams}
+\subsection{Risk analysis}
+FFmpeg is a complex piece of software, mostly written in a style of C that sacrifices clarity for performance. A potential risk for the project was the difficulty of proper integration with FFmpeg and hence inability to access or reliably modify motion vec- tors. Complete failure to do so was unlikely, but it could have consumed a significant amount of development time. As suggested by the spiral development model [19], this high-risk part was scheduled early and some “catch-up” time was allocated in the pro- ject timetable in case it caused significant delays.
+
+\subsection{Backup Plan}	
+Throughout the project development, I made sure to follow good backup procedure by keeping regular local weekly backups of my project using Time Machine for MacOS. This provides recent history through incremental backups. I ensured additional remote storage by backing up with Git, which also provided version control.
+	
 \section{Requirements Analysis}
 	Empty for now
+	\subsection{Extensions}
