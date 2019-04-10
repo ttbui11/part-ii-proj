@@ -1,4 +1,26 @@
 \chapter{Conclusion}
-\section{Results}
-\section{Lessons Learnt}
+\section{Accomplishments}
+Overall, the project achieved its aim of implementing and evaluating a programmable switch that is capable of assisting the fast retransmit process of TCP. The switch functionalities were evaluated at three different stages: a software simulation, a SUME simulation and a hardware test. A
+
+An evaluation for the switch was also provided as comparing to TCP 
+
+With the benefit of hindsight, I would have implemented the architecture prior to starting the project and used it as the starting point. This would have enabled me to focus more on evaluating and give more time to explore useful extensions.
+
 \section{Future Work}
+
+Many promising avenues for further improvement were not explored due to time constraints:
+
+\begin{itemize}
+	\item \textbf{Supporting multiple packet sizes}. The current design only supports a single packet size. It would definitely be more useful if the design could support a 
+	
+	\item \textbf{Supporting multiple flows}. Embedding schemes that withstand transcoding would be useful for things like communication over social media. Services such as YouTube, Facebook and Tumblr transcode user-uploaded videos before presenting them to other users, destroying any payload hidden in motion vectors. Embedding algorithms that make use of error correcting codes or redundant encoding may be better able to resist this.
+	
+	\item \textbf{User INteface}. The current CLI could be replaced by a more novice-friendly GUI, providing helpful guidance for inexperienced users who want to start using covert communication. This could allow
+	
+	adaptively installing and removing flows to monitor, as well as the ability to configure the flow.It could include a privacy advice and an automatic algorithm recommendation based on a set of predefined use-cases, the payload size and the video embedding capacity. An HCI trial could be conducted to evaluate whether the interface helps the users achieve the required communication secrecy level while being educative and easy to use.
+	
+\end{itemize}
+
+\paragraph{Closing Remarks}\ 
+
+This project has been a fascinating opportunity to explore the field of computer networking, especially high-performance networking, comprehend and appreciate the intricacy of TCP congestion control mechanism and the potential of data plane programmability. The project has achieved most of its goals and attempted to investigate and evaluate a modification to assist TCP fast retransmit algorithm, providing a starting point for future improvements. This project has also contributed to my personal development by improving my software engineering and technical writing skills.

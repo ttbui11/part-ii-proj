@@ -1,4 +1,4 @@
-This is BibTeX, Version 0.99d (TeX Live 2018)
+This is BibTeX, Version 0.99d (TeX Live 2017/Debian)
 Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: diss.aux
 The style file: IEEEtranN.bst
@@ -8,7 +8,18 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: References/references.bib
-Warning--I didn't find a database entry for "Moore95"
+I was expecting a `,' or a `}'---line 21 of file References/references.bib
+ :  
+ :  urldate={09-04-2019}
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+I was expecting a `,' or a `}'---line 27 of file References/references.bib
+ :  
+ :  urldate={09-04-2019}
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+Warning--entry type for "support" isn't style-file defined
+--line 99 of file References/references.bib
 -- IEEEtranN.bst version 1.14 (2015/08/26) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
@@ -19,45 +30,45 @@ Reallocated glb_str_end (elt_size=4) to 20 items from 10.
 Warning--empty booktitle in p4xos
 
 Done.
-You've used 9 entries,
+You've used 21 entries,
             4855 wiz_defined-function locations,
-            1008 strings with 10138 characters,
-and the built_in function-call counts, 8472 in all, are:
-= -- 658
-> -- 359
-< -- 37
-+ -- 168
-- -- 90
-* -- 531
-:= -- 1261
-add.period$ -- 22
-call.type$ -- 9
-change.case$ -- 18
-chr.to.int$ -- 99
-cite$ -- 12
-duplicate$ -- 546
-empty$ -- 636
-format.name$ -- 104
-if$ -- 1883
+            1055 strings with 11854 characters,
+and the built_in function-call counts, 15902 in all, are:
+= -- 1299
+> -- 543
+< -- 67
++ -- 266
+- -- 136
+* -- 888
+:= -- 2384
+add.period$ -- 48
+call.type$ -- 21
+change.case$ -- 42
+chr.to.int$ -- 165
+cite$ -- 28
+duplicate$ -- 1090
+empty$ -- 1274
+format.name$ -- 163
+if$ -- 3561
 int.to.chr$ -- 1
-int.to.str$ -- 10
-missing$ -- 110
-newline$ -- 59
-num.names$ -- 21
-pop$ -- 309
+int.to.str$ -- 22
+missing$ -- 211
+newline$ -- 99
+num.names$ -- 45
+pop$ -- 633
 preamble$ -- 1
-purify$ -- 9
+purify$ -- 21
 quote$ -- 2
-skip$ -- 580
+skip$ -- 1133
 stack$ -- 0
-substring$ -- 239
-swap$ -- 382
-text.length$ -- 7
+substring$ -- 410
+swap$ -- 694
+text.length$ -- 13
 text.prefix$ -- 0
 top$ -- 6
-type$ -- 142
+type$ -- 327
 warning$ -- 1
-while$ -- 30
+while$ -- 58
 width$ -- 0
-write$ -- 130
-(There were 2 warnings)
+write$ -- 250
+(There were 2 error messages)

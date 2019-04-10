@@ -68,7 +68,7 @@
 % Use [H] when including graphics. Note 'H' instead of 'h'
 \usepackage{graphbox}
 \usepackage{float}
-\restylefloat{figure}
+\restylefloat*{figure}
 
 % Subcaption package is also available in the sty folder you can use that by
 % uncommenting the following line
@@ -105,7 +105,9 @@
 \clubpenalty=500
 \widowpenalty=500
 
-\usepackage[bottom]{footmisc} 
+\usepackage[bottom]{footmisc}
+\usepackage{chngcntr} % continuous count
+\counterwithout{footnote}{chapter}
 % `perpage`: Range of footnote options, reset to 1 per page
 % `bottom`: sticks footnote to the end of page regardless
 

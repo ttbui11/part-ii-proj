@@ -1059,7 +1059,7 @@ wish to left align your text}
 %  - All of this is made by the macro \@makechapterhead (from book.cls; emphasis added):
 
 \renewcommand{\@makechapterhead}[1]{%
-\vspace*{5\p@}% <------------------------------------ (1)
+\vspace*{0.1\p@}% <------------------------------------ (1)
   {\parindent \z@ \raggedright \normalfont
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter
@@ -1075,12 +1075,12 @@ wish to left align your text}
 }
 
 \renewcommand{\@makeschapterhead}[1]{%
-  \vspace*{50\p@}% <------------------------------------ (1)
+  \vspace*{0.1\p@}% <------------------------------------ (1)
   {\parindent \z@ \raggedright
     \normalfont
     \interlinepenalty\@M
     \Huge \bfseries  #1\par\nobreak
-    \vskip 40\p@% <------------------------------------- (3)
+    \vskip 20\p@% <------------------------------------- (3)
   }
 }
 
