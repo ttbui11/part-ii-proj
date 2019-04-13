@@ -17,97 +17,129 @@
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \@writefile{toc}{\thispagestyle {empty}}
-\@writefile{toc}{\contentsline {chapter}{List of figures}{7}{chapter*.7}}
 \citation{zilberman2017has}
 \citation{dns}
 \citation{p4xos}
 \citation{netCache}
 \citation{netChain}
-\@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduction}{8}{chapter.1}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduction}{7}{chapter.1}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {1.1}Motivation}{8}{section.1.1}}
-\@writefile{toc}{\contentsline {section}{\numberline {1.2}Project Aims}{9}{section.1.2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces The standard convention of TCP handling.\relax }}{9}{figure.1.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.1}Motivation}{7}{section.1.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.2}Project Aims}{8}{section.1.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces The standard convention of TCP fast retransmit.\relax }}{8}{figure.1.1}}
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{tradition-tcp}{{1.1}{9}{The standard convention of TCP handling.\relax }{figure.1.1}{}}
+\newlabel{tradition-tcp}{{1.1}{8}{The standard convention of TCP fast retransmit.\relax }{figure.1.1}{}}
 \citation{rfc5681}
 \citation{sdn}
 \citation{bosshart2014p4,p4spec,p4.org}
 \citation{pof,song2013protocol}
 \citation{sivaraman2015dc}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces The proposed TCP handling.\relax }}{10}{figure.1.2}}
-\newlabel{project-tcp}{{1.2}{10}{The proposed TCP handling.\relax }{figure.1.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {1.3}Related Work}{10}{section.1.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.1}TCP Congestion Control}{10}{subsection.1.3.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.2}Programmable Data Planes}{10}{subsection.1.3.2}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {2}Preparation}{12}{chapter.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces The proposed TCP fast retransmit, assisted by the programmable switch.\relax }}{9}{figure.1.2}}
+\newlabel{project-tcp}{{1.2}{9}{The proposed TCP fast retransmit, assisted by the programmable switch.\relax }{figure.1.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.3}Related Work}{9}{section.1.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.1}TCP Congestion Control}{9}{subsection.1.3.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.2}Programmable Data Planes}{9}{subsection.1.3.2}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}Preparation}{11}{chapter.2}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}Software Used}{12}{section.2.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.1}Programming Languages}{12}{subsection.2.1.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.2}Development Environment}{13}{subsection.2.1.2}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}Starting Point}{13}{section.2.2}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Software Used}{11}{section.2.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.1}Programming Languages}{11}{subsection.2.1.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.2}Development Tools}{12}{subsection.2.1.2}}
 \citation{moscow}
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Requirements Analysis}{14}{section.2.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}Starting Point}{13}{section.2.2}}
+\newlabel{sec:start}{{2.2}{13}{Starting Point}{section.2.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Requirements Analysis}{13}{section.2.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}The P4 Language}{14}{section.2.4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces The process of programming a P4 target. Source: \href  {https://p4.org}{P4.org -- Copyright \textcopyright \ 2019}.\relax }}{15}{figure.2.1}}
+\newlabel{p4target}{{2.1}{15}{The process of programming a P4 target. Source: \href {https://p4.org}{P4.org -- Copyright \textcopyright \ 2019}.\relax }{figure.2.1}{}}
 \citation{px}
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Detailed Preparation}{15}{section.2.4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}The P4 Language}{15}{subsection.2.4.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}The Xilinx P4-SDNet}{15}{subsection.2.4.2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces The Xilinx P4-SDNet compilation flow. P4 programs are first translated into a PX program, which is then compiled into a Verilog module using the SDNet flow. SDNet also produces a verification environment.\relax }}{16}{figure.2.1}}
-\newlabel{sdnet}{{2.1}{16}{The Xilinx P4-SDNet compilation flow. P4 programs are first translated into a PX program, which is then compiled into a Verilog module using the SDNet flow. SDNet also produces a verification environment.\relax }{figure.2.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.3}The NetFPGA Platform}{16}{subsection.2.4.3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces A block diagram of the NetFPGA reference design.\relax }}{17}{figure.2.2}}
-\newlabel{ref-switch}{{2.2}{17}{A block diagram of the NetFPGA reference design.\relax }{figure.2.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.4}The P4$\rightarrow $NetFPGA Workflow}{17}{subsection.2.4.4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.5}High-Level Architecture}{17}{subsection.2.4.5}}
-\@writefile{toc}{\contentsline {subsubsection}{Network Level}{17}{section*.8}}
-\@writefile{toc}{\contentsline {subsubsection}{System Level}{17}{section*.9}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}The Xilinx P4-SDNet}{16}{section.2.5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces The Xilinx P4-SDNet compilation flow. P4 programs are first translated into a PX program, which is then compiled into a Verilog module using the SDNet flow. SDNet also produces a verification environment.\relax }}{17}{figure.2.2}}
+\newlabel{sdnet}{{2.2}{17}{The Xilinx P4-SDNet compilation flow. P4 programs are first translated into a PX program, which is then compiled into a Verilog module using the SDNet flow. SDNet also produces a verification environment.\relax }{figure.2.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.6}The NetFPGA Platform}{17}{section.2.6}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces Block diagram of the NetFPGA reference design.\relax }}{18}{figure.2.3}}
+\newlabel{ref-switch}{{2.3}{18}{Block diagram of the NetFPGA reference design.\relax }{figure.2.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.7}The P4$\rightarrow $NetFPGA Workflow}{18}{section.2.7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces Block diagram of the SimpleSumeSwitch P4 architecture used within the P4$\rightarrow $NetFPGA workflow. Source: \href  {https://github.com/NetFPGA/P4-NetFPGA-public/wiki/Workflow-Overview\#simplesumeswitch-architecture}{P4$\rightarrow $NetFPGA Home Wiki}.\relax }}{19}{figure.2.4}}
+\newlabel{sss}{{2.4}{19}{Block diagram of the SimpleSumeSwitch P4 architecture used within the P4$\rightarrow $NetFPGA workflow. Source: \href {https://github.com/NetFPGA/P4-NetFPGA-public/wiki/Workflow-Overview\#simplesumeswitch-architecture}{P4$\rightarrow $NetFPGA Home Wiki}.\relax }{figure.2.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.1}{\ignorespaces Description of the SimpleSumeSwitch \texttt  {sume\_metadata} fields.\relax }}{19}{table.caption.7}}
+\newlabel{sume}{{2.1}{19}{Description of the SimpleSumeSwitch \texttt {sume\_metadata} fields.\relax }{table.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.5}{\ignorespaces The automated P4$\rightarrow $NetFPGA compilation flow. P4 programs are compiled into an HDL instance of the SimpleSumeSwitch architecture, which is then used to replace the Output Port Lookup module in the NetFPGA Reference Switch Design.\relax }}{20}{figure.2.5}}
+\newlabel{p4-netfpga}{{2.5}{20}{The automated P4$\rightarrow $NetFPGA compilation flow. P4 programs are compiled into an HDL instance of the SimpleSumeSwitch architecture, which is then used to replace the Output Port Lookup module in the NetFPGA Reference Switch Design.\relax }{figure.2.5}{}}
+\citation{p4.org}
+\@writefile{toc}{\contentsline {section}{\numberline {2.8}Project Workflow}{21}{section.2.8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.8.1}Preparation Stage}{21}{subsection.2.8.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.8.2}Architecture Design Stage}{21}{subsection.2.8.2}}
+\newlabel{sec:arch-design}{{2.8.2}{21}{Architecture Design Stage}{subsection.2.8.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Network Level}{22}{section*.8}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.6}{\ignorespaces The network.\relax }}{22}{figure.2.6}}
+\newlabel{fig:network}{{2.6}{22}{The network.\relax }{figure.2.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{System Level}{22}{section*.9}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.7}{\ignorespaces Flowchart shows the packet buffering logic of the first design.\relax }}{23}{figure.2.7}}
+\newlabel{fig:flowchart}{{2.7}{23}{Flowchart shows the packet buffering logic of the first design.\relax }{figure.2.7}{}}
 \citation{spiral}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.8}{\ignorespaces Block diagram of the NetFPGA reference switch design.\relax }}{24}{figure.2.8}}
+\newlabel{fig:netfpga-ref-switch}{{2.8}{24}{Block diagram of the NetFPGA reference switch design.\relax }{figure.2.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.8.3}Implementation Stage}{24}{subsection.2.8.3}}
 \citation{fpga}
 \citation{support}
 \citation{spiral}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces The automated P4$\rightarrow $NetFPGA compilation flow. P4 programs are compiled into an HDL instance of the SimpleSumeSwitch architecture, which is then used to replace the Output Port Lookup module in the NetFPGA Reference Switch Design.\relax }}{18}{figure.2.3}}
-\newlabel{p4-netfpga}{{2.3}{18}{The automated P4$\rightarrow $NetFPGA compilation flow. P4 programs are compiled into an HDL instance of the SimpleSumeSwitch architecture, which is then used to replace the Output Port Lookup module in the NetFPGA Reference Switch Design.\relax }{figure.2.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces Test\relax }}{18}{figure.2.4}}
-\newlabel{workflow}{{2.4}{18}{Test\relax }{figure.2.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.6}Project Workflow}{18}{subsection.2.4.6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.7}Risk Analysis}{18}{subsection.2.4.7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.8}Backup Plan}{19}{subsection.2.4.8}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.9}{\ignorespaces Block diagram of the modified reference switch pipeline. Packets are duplicated after the SSS module and being buffered in the Cache Queue.\relax }}{25}{figure.2.9}}
+\newlabel{fig:modified-design}{{2.9}{25}{Block diagram of the modified reference switch pipeline. Packets are duplicated after the SSS module and being buffered in the Cache Queue.\relax }{figure.2.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.8.4}Risk Analysis}{25}{subsection.2.8.4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.8.5}Backup Plan}{26}{subsection.2.8.5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.10}{\ignorespaces Block diagram showing the workflow of the implementation stage. Dotted arrows represent a revision of previous steps, possibly with adjustments/refinements, in an iterative approach. Where appropriate, the programming language involved is stated. Passing all the steps in red box indicates the design meeting the requirements.\relax }}{27}{figure.2.10}}
+\newlabel{fig:workflow}{{2.10}{27}{Block diagram showing the workflow of the implementation stage. Dotted arrows represent a revision of previous steps, possibly with adjustments/refinements, in an iterative approach. Where appropriate, the programming language involved is stated. Passing all the steps in red box indicates the design meeting the requirements.\relax }{figure.2.10}{}}
 \citation{zilberman2014netfpga}
 \citation{fpga}
-\@writefile{toc}{\contentsline {chapter}{\numberline {3}Implementation}{20}{chapter.3}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Implementation}{28}{chapter.3}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {3.1}Repository Overview}{20}{section.3.1}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.2}Software Implementation}{21}{section.3.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}The Parser}{21}{subsection.3.2.1}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces Parser general FSM structure.\relax }}{21}{figure.3.1}}
-\newlabel{general-fsm}{{3.1}{21}{Parser general FSM structure.\relax }{figure.3.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces The FSM of the design.\relax }}{22}{figure.3.2}}
-\newlabel{design-fsm}{{3.2}{22}{The FSM of the design.\relax }{figure.3.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces The definition of \texttt  {parse\_ipv4} state.\relax }}{23}{figure.3.3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.4}{\ignorespaces The definition of \texttt  {parse\_tcp} state.\relax }}{23}{figure.3.4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}The Match-Action Pipeline}{23}{subsection.3.2.2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.5}{\ignorespaces A packet processing program describing a simple L2/L3 IPv4 switch.\relax }}{23}{figure.3.5}}
-\newlabel{mapipe}{{3.5}{23}{A packet processing program describing a simple L2/L3 IPv4 switch.\relax }{figure.3.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}The Deparser}{24}{subsection.3.2.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.4}The Externs}{25}{subsection.3.2.4}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.3}Hardware Implementation}{25}{section.3.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.1}The Cache Queue}{25}{subsection.3.3.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.2}The Output Arbiter}{25}{subsection.3.3.2}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {4}Evaluation}{27}{chapter.4}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}Repository Overview}{28}{section.3.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Software Implementation}{29}{section.3.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}The Parser}{29}{subsection.3.2.1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces Parser general FSM structure.\relax }}{30}{figure.3.1}}
+\newlabel{general-fsm}{{3.1}{30}{Parser general FSM structure.\relax }{figure.3.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces The FSM of the design.\relax }}{30}{figure.3.2}}
+\newlabel{design-fsm}{{3.2}{30}{The FSM of the design.\relax }{figure.3.2}{}}
+\citation{}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces The definition of \texttt  {parse\_ipv4} state.\relax }}{31}{figure.3.3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.4}{\ignorespaces The definition of \texttt  {parse\_tcp} state.\relax }}{31}{figure.3.4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}The Match-Action Pipeline}{31}{subsection.3.2.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.5}{\ignorespaces A packet processing program describing a simple L2/L3 IPv4 switch.\relax }}{32}{figure.3.5}}
+\newlabel{mapipe}{{3.5}{32}{A packet processing program describing a simple L2/L3 IPv4 switch.\relax }{figure.3.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces Entries for the \texttt  {forward} table.\relax }}{32}{table.caption.10}}
+\newlabel{forward}{{3.1}{32}{Entries for the \texttt {forward} table.\relax }{table.caption.10}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3.2}{\ignorespaces Entries for the \texttt  {retransmit} table.\relax }}{32}{table.caption.10}}
+\newlabel{retransmit}{{3.2}{32}{Entries for the \texttt {retransmit} table.\relax }{table.caption.10}{}}
+\citation{domino}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}The Extern Functions}{33}{subsection.3.2.3}}
+\@writefile{lot}{\contentsline {table}{\numberline {3.3}{\ignorespaces The P4$\rightarrow $NetFPGA extern functions library.\relax }}{33}{table.caption.11}}
+\newlabel{externs}{{3.3}{33}{The P4$\rightarrow $NetFPGA extern functions library.\relax }{table.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.4}The Deparser}{34}{subsection.3.2.4}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}Hardware Implementation}{35}{section.3.3}}
+\newlabel{sec:cachequeue}{{3.3}{35}{Hardware Implementation}{section.3.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.1}The \\nf\_datapath -- Some better name}{35}{subsection.3.3.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.2}The Cache Queue}{35}{subsection.3.3.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.3}The Output Arbiter}{35}{subsection.3.3.3}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Evaluation}{37}{chapter.4}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {chapter}{\numberline {5}Conclusion}{28}{chapter.5}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}SDNet Simulation}{37}{section.4.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}SUME Simulation}{37}{section.4.2}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.3}Hardware Test}{37}{section.4.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.4}Performance Evaluation}{37}{section.4.4}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.5}Performance Evaluation }{37}{section.4.5}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Conclusion}{38}{chapter.5}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {5.1}Accomplishments}{28}{section.5.1}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.2}Future Work}{28}{section.5.2}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}Accomplishments}{38}{section.5.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.2}Future Work}{38}{section.5.2}}
 \citation{*}
 \bibstyle{IEEEtranN}
 \bibdata{References/references}
-\@writefile{toc}{\contentsline {paragraph}{Closing Remarks}{29}{section*.10}}
+\@writefile{toc}{\contentsline {paragraph}{Closing Remarks}{39}{section*.12}}
 \bibcite{zilberman2017has}{{1}{2017}{{Zilberman et~al.}}{{Zilberman, Grosvenor, Popescu, Manihatty-Bojan, Antichi, W{\'o}jcik, and Moore}}}
 \bibcite{dns}{{2}{2017}{{Sapio et~al.}}{{Sapio, Amedeo, Abdelaziz, Aldilaijan, Canini, and Kalnis}}}
 \bibcite{p4xos}{{3}{May 2018}{{Dang et~al.}}{{Dang, Bressana, Wang, Lee, Weatherspoon, Canini, Pedone, Zilberman, and Soul{\'e}}}}
@@ -117,7 +149,7 @@
 \bibcite{sdn}{{7}{}{{Simon Jouet}}{{}}}
 \bibcite{bosshart2014p4}{{8}{2014}{{Bosshart et~al.}}{{Bosshart, Daly, Gibb, Izzard, McKeown, Rexford, Schlesinger, Talayco, Vahdat, Varghese, et~al.}}}
 \bibcite{p4spec}{{9}{}{{p4s}}{{}}}
-\@writefile{toc}{\contentsline {chapter}{Bibliography}{30}{chapter*.11}}
+\@writefile{toc}{\contentsline {chapter}{Bibliography}{40}{chapter*.13}}
 \bibcite{p4.org}{{10}{}{{p4.}}{{}}}
 \bibcite{pof}{{11}{}{{pof}}{{}}}
 \bibcite{song2013protocol}{{12}{2013}{{Song}}{{}}}
@@ -128,5 +160,6 @@
 \bibcite{fpga}{{17}{}{{fpg}}{{}}}
 \bibcite{support}{{18}{}{{sup}}{{}}}
 \bibcite{zilberman2014netfpga}{{19}{2014}{{Zilberman et~al.}}{{Zilberman, Audzevich, Covington, and Moore}}}
-\bibcite{multilate}{{20}{}{{Jacob Leverich}}{{}}}
-\bibcite{osnt}{{21}{}{{osn}}{{}}}
+\bibcite{domino}{{20}{2016}{{Sivaraman et~al.}}{{Sivaraman, Cheung, Budiu, Kim, Alizadeh, Balakrishnan, Varghese, McKeown, and Licking}}}
+\bibcite{multilate}{{21}{}{{Jacob Leverich}}{{}}}
+\bibcite{osnt}{{22}{}{{osn}}{{}}}

@@ -22,9 +22,9 @@
 				.4 sss\_sdnet\_tuples.py*.
 			.3 templates.
 				.4 externs.
-					.5 <externs-name>.
+					.5 <externs\_type>.
 						.6 hdl.
-							.7 <externs-name>\_template.v*.
+							.7 <externs\_type>\_template.v*.
 		.2 lib.
 			.3 hw.
 				.4 contrib.
@@ -40,24 +40,32 @@ This project will work mainly with a NetFPGA SUME board \cite{zilberman2014netfp
 
 \section{Software Implementation}
 	\subsection{The Parser}
-Parsers are functions that map packets into headers and metadata, written in a state machine style. A parser is defined by:
+Parsers are functions that are responsible for extracting headers out of an incoming packet, written in a state machine style. The following code sequence defines our parser with a \texttt{start} state:
 
 {\renewcommand{\baselinestretch}{0.8}\small
 	\begin{verbatim}
-  // Parser Implementation
-  @Xilinx_MaxPacketRegion(8192)
-  parser TopParser(packet_in b, 
-                  out Parsed_packet p, 
-                  out user_metadata_t user_metadata,
-                  out digest_data_t digest_data,
-                  inout sume_metadata_t sume_metadata) {
-                  
-        /*** state machine description ***/
-        
-  }
+    // Parser Implementation
+    @Xilinx_MaxPacketRegion(8192)
+    parser TopParser(packet_in b, 
+                    out Parsed_packet p, 
+                    out user_metadata_t user_metadata,
+                    out digest_data_t digest_data,
+                    inout sume_metadata_t sume_metadata) {
+      state start {
+        b.extract(p.ethernet);
+        user_metadata.unused = 0;
+        digest_data.unused = 0;
+        digest_data.flow_id = 0;
+        digest_data.tuser = 0;
+        transition select(p.ethernet.etherType) {
+          IPV4_TYPE: parse_ipv4;
+          default: reject;
+        } 
+      }   
+    }
 	\end{verbatim}
 }
-where \texttt{@Xilinx\_MaxPacketRegion(8192)} is Xilinx P4-SDNet's additional annotation for parser/deparser that declares the largest packet size (in bits) the parser/deparser needs to support.
+where \texttt{@Xilinx\_MaxPacketRegion} is Xilinx P4-SDNet's additional annotation for parser/deparser that declares the largest packet size (in bits) the parser/deparser needs to support.
 
 \begin{figure}[h]
 	\centering
@@ -72,7 +80,7 @@ Figure \ref{general-fsm} illustrates the general structure of a parser state mac
 	\item \texttt{accept} -- indicating successful parsing.
 	\item \texttt{reject} -- indicating a parsing failure.
 \end{itemize}
-and other internal states that may be defined by the user. The \texttt{start} state is part of the parser, while the \texttt{accept} and \texttt{reject} states are distinct from the user-defined states and are logically outside of the parser. 
+and other internal states that may be defined by the user. Parsers always start in the \texttt{start} state, execute one or more statements, then make a transition to the next state until reaching either the \texttt{accept} or \texttt{reject} states, which are distinct from the user-defined states and are logically outside of the parser. 
 
 An architecture must specify the behaviour when the \texttt{accept} and \texttt{reject} states are reached. For example, an architecture may specify that all packets reaching the \texttt{reject} state are dropped without further processing. Alternatively, it may specify that such packets are passed to the next block after the parser, with intrinsic metadata indicating that the parser reached the \texttt{reject} state, along with the error recorded. The SimpleSumeSwitch architecture adopts the former.
 
@@ -83,9 +91,9 @@ An architecture must specify the behaviour when the \texttt{accept} and \texttt{
 	\label{design-fsm}
 \end{figure}
 
-Figure \ref{design-fsm} describes the FSM structure of my parser, in which I defined two additional states \texttt{parse\_ipv4} and \texttt{parse\_tcp}:
+Figure \ref{design-fsm} describes the FSM structure of our parser, in which I defined two additional states \texttt{parse\_ipv4} and \texttt{parse\_tcp}:
 
-\begin{figure}[!ht]
+\begin{figure}[!h]
 	\begin{minipage}{.48\textwidth}
 		{\renewcommand{\baselinestretch}{0.8}\small
 		\begin{verbatim}
@@ -117,10 +125,11 @@ Figure \ref{design-fsm} describes the FSM structure of my parser, in which I def
 	\end{minipage}
 \end{figure}
 
-The P4 \texttt{select} statement is used to branch in a parser. It is similar to \texttt{case} statement in C or Java, but without ``fall-through behaviour''---i.e., \texttt{break} statements are not needed. A \texttt{parse\_ethernet} state could be defined similarly, but I decided to include the parsing of the Ethernet header within the \texttt{start} state, together with initialising the metadata, for simplicity. Here, the \texttt{parse\_ipv4} state extracts the packet's IPv4 header, looks at the \texttt{protocol} field and makes a transition to the \texttt{parse\_tcp} state only if it is \texttt{TCP\_TYPE} which is defined to be 6. Otherwise, the packet is rejected. The \texttt{parse\_tcp} state simply extracts the TCP header of the packet and made a transits to the \texttt{accept} state, where the packet will be passed to the match-action pipeline. 
+The P4 \texttt{select} statement is used to branch in a parser. It is similar to \texttt{case} statement in C or Java, but without ``fall-through behaviour''---i.e., \texttt{break} statements are not needed. Here, our parser first uses the \verb|packet_in| object's \texttt{extract} method to fill out the fields of the Ethernet header. It also initialises the values of the \verb|user_metadata|'s field \verb|digest_data|'s fields to 0. It then transitions to either the \verb|parse_ipv4| state or the \texttt{reject} state based on the value of the Ethernet header’s \texttt{etherType} field. In the \texttt{parse\_ipv4} state, the parser extracts the packet's IPv4 header, looks at its \texttt{protocol} field and transitions to the \texttt{parse\_tcp} state only if it is \texttt{TCP\_TYPE} which is defined to be 6. Otherwise, the packet is rejected. Finally, in the \texttt{parse\_tcp} state, the parser simply extracts the TCP header and then transitions to the \texttt{accept} state, where the packet will be passed to the match-action pipeline. A \texttt{parse\_ethernet} state could be defined similarly to \verb|parse_ipv4| and \verb|parse_tcp|, but I decided to include the parsing of the Ethernet header within the \texttt{start} state, together with initialising the metadata, for simplicity.
 		
 	\subsection{The Match-Action Pipeline}
-A match-action pipeline can be defined by the following code sequence:
+A match-action pipeline is a control block where the match-action packet processing logic is implemented. A match-action pipeline uses tables, actions, and imperative code (indicated by the \textbf{\texttt{control}} keyword) to manipulate input headers and metadata. This match-action processing model was originally introduced as the core around which the OpenFlow model for SDN was built \cite{}. Our match-action pipeline can be defined by the following code sequence:
+
 {\renewcommand{\baselinestretch}{0.8}\small
 	\begin{verbatim}
     // Match-action pipeline
@@ -134,7 +143,8 @@ A match-action pipeline can be defined by the following code sequence:
     }
 	\end{verbatim}
 }
-This is where the header processing logic is implemented, using a data-dependent sequence of match-action unit invocations and other imperative constructs (indicated by the \textbf{\texttt{control}} keyword). This pipeline receives four inputs: the parsed packet \texttt{p}, the SUME metadata, the digest data and the user metadata. The direction \texttt{inout} indicates that the parameters are both an input and an output. Thus, their values, including the fields in the headers of packet \texttt{p}, can be modified. Nonetheless, the user metadata was not used in this design.
+
+This pipeline receives four inputs: the parsed packet \texttt{p}, the SUME metadata, the digest data and the user metadata. The direction \texttt{inout} indicates that the parameters are both an input and an output. Thus, their values, including the fields in the headers of packet \texttt{p}, can be modified. Nonetheless, the user metadata was not used in this design.
 
 \begin{figure}[!ht]
 	\centering
@@ -143,9 +153,43 @@ This is where the header processing logic is implemented, using a data-dependent
 	\label{mapipe}
 \end{figure}
 
-Figure \ref{mapipe} illustrates the control flow program acting on a packet going through our match-action pipeline, which comprises two match-action units (represented by the P4 \textbf{\texttt{table}} keyword): \texttt{forward} and \texttt{retransmit}.
+When we defines a match-action table (using the P4 \textbf{\texttt{table}} keyword), we declare various properties such as the header and/or metadata field(s) to match upon, the type of match to be performed, a list of all possible actions that can be invoked, the number of entries to allocate for the table, and a default action to invoke if no match is found. A table entry contains a specific key to match on, a single action to invoke when the entry produces a match, and any data to provide to the action when it is invoked. Table entries are populated at runtime by the control plane software.
+
+\begin{table}[!h]
+	\begin{minipage}{0.48\textwidth}
+		\centering
+		\caption{Entries for the \texttt{forward} table.}
+		\label{forward}
+		\begin{tabular}{ | c | c | c |}
+			\hline
+			\textbf{Key} & \textbf{Action ID} & \textbf{Action Data} \\ \hline
+			\texttt{1}  & 16 & 1 \\ \hline
+			\texttt{1} & 8 & 1 \\ \hline
+			\texttt{1} & 8 & 1 \\ \hline
+			\texttt{1} & 8 & 1 \\ \hline
+			\texttt{1} & 16 & 1 \\ \hline
+		\end{tabular}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.48\textwidth}
+		\centering
+		\caption{Entries for the \texttt{retransmit} table.}
+		\label{retransmit}
+		\begin{tabular}{ | c | c | c |}
+			\hline
+			\textbf{Key} & \textbf{Action ID} & \textbf{Action Data} \\ \hline
+			\texttt{1}  & 16 & 1 \\ \hline
+			\texttt{1} & 8 & 1 \\ \hline
+			\texttt{1} & 8 & 1 \\ \hline
+			\texttt{1} & 8 & 1 \\ \hline
+			\texttt{1} & 16 & 1 \\ \hline
+		\end{tabular}
+	\end{minipage}
+\end{table}
+
+Figure \ref{mapipe} illustrates the control flow program acting on a packet going through our match-action pipeline, which comprises two match-action tables: \texttt{forward} and \texttt{retransmit}.
 The first table uses the Ethernet destination address to determine the output port for the next hop. If this lookup fails, the packet is dropped (by assigning \texttt{sume\_metadata.dst\_port} to 0). The second table checks the computed \texttt{digest\_data.flow\_id}: if it matches our flow of interest, the packet will be monitored to assist the fast retransmit of TCP congestion control. Otherwise, the packet will just be sent normally. A packet will be modified by a series of \texttt{action}s: \texttt{set\_output\_port} sets the output port on the SUME board for packets whose Ethernet destination address matches what was defined in the first table, and \texttt{compute\_flow\_id} computes the flow number of the packet for the second table to look up. \texttt{cache\_write}, \texttt{cache\_read} and \texttt{cache\_drop} modify \texttt{digest\_data.tuser} to signal the cache queue to cache, retransmit and drop the packet at the head of the queue respectively.
-		
+
 In summary, the switch will perform the following tasks in the SSS module:
 \begin{itemize}
 	\item Receive and parse packet from the sender.
@@ -156,10 +200,56 @@ In summary, the switch will perform the following tasks in the SSS module:
 	\item Construct the final packet and send it to the receiver.
 \end{itemize}
 
-	\subsection{The Deparser}
-The inverse of parsing is deparsing, or packet assembly, where the outgoing packet is constructed by reassembling of the headers as computed by the pipeline. P4 does not provide a separate language for packet deparsing; deparsing is done in a \textbf{\texttt{control}} block that has at least one parameter of type \verb|packet_out|. The advantage of this approach is that it makes deparsing explicit, but decouples it from parsing. 
+	\subsection{The Extern Functions}
+P4 extern functions, or externs, are platform-specific functions that are not described in the core P4 language---a kind of ``black boxes'' for P4 programs. Extern functions are implemented in HDL and the P4 program just sees the inputs and outputs, as parameters and results. There are two types of extern functions: stateless (reinitialised for each packet) and stateful (keeping states between packets). The stateful atomic externs are inspired by the Domino atoms \cite{domino}. P4$\rightarrow$NetFPGA provides a set of commonly-used extern functions, shown in Table \ref{externs}, in the \texttt{templates} folder. 
 
-The following code block, which implements the deparser of the switch, first writes an Ethernet header, followed by an IPv4 header, and then a TCP header into a \verb|packet_out|. Since emitting a header appends the header to the \verb|packet_out| only if the header is valid, P4 first checks the validity of the headers before serialising them.
+\begin{table}[!ht]
+	\begin{center}
+		\caption{The P4$\rightarrow$NetFPGA extern functions library.}
+		\label{externs}
+		\begin{tabular}{ | c | c | }
+			\hline
+			\multicolumn{2}{|c|}{\textbf{Stateful Atomic Extern Functions}} \\ \hline
+			\textbf{Name} & \textbf{Description}  \\ \hline
+			RW & Read or write state \\ \hline
+			RAW & Read, add to, or overwrite state  \\ \hline
+			PRAW & Either perform RAW or do not perform RAW based on predicate \\ \hline
+			ifElseRAW & Two RAWs, one each for when a predicate is true or false \\ \hline
+			Sub & IfElseRAW with stateful subtraction capability \\ \hline
+			
+			\multicolumn{2}{|c|}{\textbf{Stateless Extern Functions}} \\ \hline
+			\textbf{Name} & \textbf{Description}  \\ \hline
+			IP Checksum & Given an IP header, compute the IP checksum \\ \hline
+			LRC & Longitudinal redundancy check, simple hash function \\ \hline
+			timestamp & Generate timestamp (measured in clock cycles, granularity of 5ns) \\ \hline
+		\end{tabular}
+	\end{center}
+\end{table}
+
+An extern function can be declared using the syntax \verb|extern void <name>_<extern_type>(in T1 in_data1, in T2 in_data2, ..., out D result);|. The following code sequence shows an example of declaring a afafa, dafaf:
+
+{\renewcommand{\baselinestretch}{0.8}\small
+	\begin{verbatim}
+	@Xilinx_MaxLatency(1)
+	@Xilinx_ControlWidth(0)
+	extern void hash_lrc(in T in_data, out D result);
+	\end{verbatim}
+}
+where \texttt{@Xilinx\_MaxLatency} and \texttt{@Xilinx\_ControlWidth} are Xilinx P4-SDNet's additional annotations to allow P4 programmer to specify the number of clock cycles to complete the extern operation, and the width of the address space allocated to this register respectively. The control width should always be equal to the width of the index field so that the control plane can access all register entries.
+
+For this design, I defined the following externs using the available extern functions provided by p4$\rightarrow$NetFPGA:
+\begin{itemize}
+	\item 
+	\item 
+\end{itemize}
+MINUS Functionality
+
+An important feature of P4$\rightarrow$NetFPGA externs is that to guarantee consistency between successive packets, stateful operations cannot be pipelined; each performs an atomic read-modify-write operation per packet. In other words, each stateful atom can only be accessed \textit{one} time in the P4 code. Multiple calls to the extern function will generate multiple instances of the atom, thus giving unexpected results. This complicates my design since WE REQUIRE INTUITIVELY TO WRITE AND CHECK.
+
+	\subsection{The Deparser}
+The inverse of parsing is deparsing, or packet assembly, where the outgoing packet is constructed by reassembling the packet headers as computed by the pipeline onto an outgoing packet byte stream. P4 does not provide a separate language for packet deparsing; deparsing is done in a \textbf{\texttt{control}} block that has at least one parameter of type \verb|packet_out| because it only involves sequential logic as used for actions. The advantage of this approach is that it makes deparsing explicit, but decouples it from parsing. 
+
+A header is added to the packet using the \verb|packet_out| object's \texttt{emit} method. following code block, which implements the deparser of the switch, first writes an Ethernet header, followed by an IPv4 header, and then a TCP header into a \verb|packet_out|. Since emitting a header appends the header to the \verb|packet_out| only if the header is valid, P4 first checks the validity of the headers before serialising them.
 
 {\renewcommand{\baselinestretch}{0.8}\small
 \begin{verbatim}
@@ -178,23 +268,25 @@ The following code block, which implements the deparser of the switch, first wri
   }
 \end{verbatim}
 }
-		
-	\subsection{The Externs}
-P4 externs are platform-specific functions that are not described in the core P4 language---some sort of ``black boxes'' for P4 programs. They can either be \textbf{stateless}---reinitialised for each packet---or \textbf{stateful}---keeping states between packets. A set of supported externs is defined by the architecture in the \texttt{templates} folder. In this project, the following 
-
-An important feature of P4$\rightarrow$NetFPGA externs is that each stateful atom (i.e. register) can only be accessed \textit{one} time in the P4 code. Multiple calls to the extern function will generate multiple instances of the atom and thus will likely give unexpected results. This complicates my 
 
 \section{Hardware Implementation}
+	\label{sec:cachequeue}
 	\subsection{The Cache Queue}
 	
 	\subsection{The Output Arbiter}
+	All input interfaces share the same bandwidth (and therefore width) as the output stream to ensure that maximum throughput can be achieved. The input port buffering will be handled in the AXI Converter block.admits packets from the ports into the data path
+	
+	The function of this block is to merge a number of input streams into one output stream. All input interfaces share the same bandwidth (and therefore width) as the output stream to ensure that maximum throughput can be achieved. The input port buffering will be handled in the AXI Converter block.
 The P4$\rightarrow$NetFPGA platform comes with an input arbiter, which performs the following functions:
 \begin{itemize}
 	\item It receives packets from one of the physical input Ethernet ports, from the control plane, or from the input recirculation port.
 	\item For packets received from Ethernet ports, the block computes the Ethernet trailer checksum and verifies it. If the checksum does not match, the packet is discarded. If the checksum does match, it is removed from the packet payload.
 	\item Receiving a packet involves running an arbitration algorithm if multiple packets are available.
 	\item If the arbiter block is busy processing a previous packet and no queue space is available, input ports may drop arriving packets, without indicating the fact that the packets were dropped in any way.
-	\item 	After receiving a packet, the arbiter block sets the inCtrl.inputPort value that is an input to the match-action pipeline with the identity of the input port where the packet originated. Physical Ethernet ports are numbered 0 to 7, while the input recirculation port has a number 13 and the CPU port has the number 14. 
+	\item After receiving a packet, the arbiter block sets the inCtrl.inputPort value that is an input to the match-action pipeline with the identity of the input port where the packet originated. Physical Ethernet ports are numbered 0 to 7, while the input recirculation port has a number 13 and the CPU port has the number 14. 
 \end{itemize}
 For our architecture, since we have two queues---the output queue and the cache queue---we would require an ``output'' arbiter for each of the five ports.
+
+	\subsection{The nf\_datapath -- Some better name}
+
 

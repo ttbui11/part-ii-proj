@@ -19,20 +19,20 @@ When a sender receives several DUP ACKs, it can be reasonably confident that the
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{tradition-tcp.png}
-	\caption{The standard convention of TCP handling.}
+	\caption{The standard convention of TCP fast retransmit.}
 	\label{tradition-tcp}
 \end{figure}
 
-Currently, the DUP ACKs will traverse all the way back to the sender (\textbf{Figure \ref{tradition-tcp}}). The sender receives the DUP ACKs, then retransmits the packet with the next higher sequence number. 
+Currently, the DUP ACKs will traverse all the way back to the sender (Figure \ref{tradition-tcp}). The sender receives the DUP ACKs, then retransmits the packet with the next higher sequence number. 
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{project-tcp.png}
-	\caption{The proposed TCP handling.}
+	\caption{The proposed TCP fast retransmit, assisted by the programmable switch.}
 	\label{project-tcp}
 \end{figure}
 
-This project aims to design and implement a programmable switch that assists the TCP fast retransmit algorithm. The programmable switch will be able to retransmit the packets from within the network, instead of waiting for the DUP ACKs to get back to the host (\textbf{Figure \ref{project-tcp}}), thereby aims to reduce the response time to DUP ACKs and reduce unnecessary changes to the congestion window. The implementation will be based on the KVS concept, where the keys are the flow ID and the packet sequence number, and the value is the payload.
+This project aims to design and implement a programmable switch that assists the TCP fast retransmit algorithm. The programmable switch will be able to retransmit the packets from within the network, instead of waiting for the DUP ACKs to get back to the host (Figure \ref{project-tcp}), thereby aims to reduce the response time to DUP ACKs and reduce unnecessary changes to the congestion window. The implementation will be based on the KVS concept, where the keys are the flow ID and the packet sequence number, and the value is the payload.
 
 \section{Related Work}
 	\subsection{TCP Congestion Control}
