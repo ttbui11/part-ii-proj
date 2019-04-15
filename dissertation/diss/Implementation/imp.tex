@@ -1,42 +1,39 @@
 \chapter{Implementation}
-\textit{I give the overview of the project repository. I move on to explain the  }
-
-\section{Repository Overview}
-
-\dirtree{%
-	.1 P4-NetFPGA.
-		.2 project.
-			.3 simple\_sume\_switch.
-				.4 hw.
-					.5 hdl.
-						.6 nf\_datapath.v*.
-				.4 test.
-					.5 sim\_switch\_default.
-						.6 run.py*.
-			.3 src.
-				.4 tcp\_retransmit.p4*.
-				.4 commands.txt*.
-			.3 testdata.
-				.4 gen\_testdata.py*.
-				.4 digest\_data.py*.
-				.4 sss\_sdnet\_tuples.py*.
-			.3 templates.
-				.4 externs.
-					.5 <externs\_type>.
-						.6 hdl.
-							.7 <externs\_type>\_template.v*.
-		.2 lib.
-			.3 hw.
-				.4 contrib.
-					.5 cores.
-						.6 sss\_cache\_queues\_v1\_0\_0*.
-				.4 std.
-					.5 cores.
-						.6 output\_arbiter\_v1\_0\_0*.
-}
-
-
-This project will work mainly with a NetFPGA SUME board \cite{zilberman2014netfpga}, using P4 programming language. I will be using the P4-NetFPGA workflow, which provides infrastructure to compile P4 programs to NetFPGA \cite{fpga}. Apart from that, everything else will be built from scratch.
+%\textit{I give the overview of the project repository. I move on to explain the  }
+%
+%\section{Repository Overview}
+%
+%\dirtree{%
+%	.1 P4-NetFPGA.
+%		.2 project.
+%			.3 simple\_sume\_switch.
+%				.4 hw.
+%					.5 hdl.
+%						.6 nf\_datapath.v*.
+%				.4 test.
+%					.5 sim\_switch\_default.
+%						.6 run.py*.
+%			.3 src.
+%				.4 tcp\_retransmit.p4*.
+%				.4 commands.txt*.
+%			.3 testdata.
+%				.4 gen\_testdata.py*.
+%				.4 digest\_data.py*.
+%				.4 sss\_sdnet\_tuples.py*.
+%			.3 templates.
+%				.4 externs.
+%					.5 <externs\_type>.
+%						.6 hdl.
+%							.7 <externs\_type>\_template.v*.
+%		.2 lib.
+%			.3 hw.
+%				.4 contrib.
+%					.5 cores.
+%						.6 sss\_cache\_queues\_v1\_0\_0*.
+%				.4 std.
+%					.5 cores.
+%						.6 output\_arbiter\_v1\_0\_0*.
+%}
 
 \section{Software Implementation}
 	\subsection{The Parser}
@@ -156,35 +153,27 @@ This pipeline receives four inputs: the parsed packet \texttt{p}, the SUME metad
 When we defines a match-action table (using the P4 \textbf{\texttt{table}} keyword), we declare various properties such as the header and/or metadata field(s) to match upon, the type of match to be performed, a list of all possible actions that can be invoked, the number of entries to allocate for the table, and a default action to invoke if no match is found. A table entry contains a specific key to match on, a single action to invoke when the entry produces a match, and any data to provide to the action when it is invoked. Table entries are populated at runtime by the control plane software.
 
 \begin{table}[!h]
-	\begin{minipage}{0.48\textwidth}
-		\centering
-		\caption{Entries for the \texttt{forward} table.}
-		\label{forward}
-		\begin{tabular}{ | c | c | c |}
-			\hline
-			\textbf{Key} & \textbf{Action ID} & \textbf{Action Data} \\ \hline
-			\texttt{1}  & 16 & 1 \\ \hline
-			\texttt{1} & 8 & 1 \\ \hline
-			\texttt{1} & 8 & 1 \\ \hline
-			\texttt{1} & 8 & 1 \\ \hline
-			\texttt{1} & 16 & 1 \\ \hline
-		\end{tabular}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.48\textwidth}
-		\centering
-		\caption{Entries for the \texttt{retransmit} table.}
-		\label{retransmit}
-		\begin{tabular}{ | c | c | c |}
-			\hline
-			\textbf{Key} & \textbf{Action ID} & \textbf{Action Data} \\ \hline
-			\texttt{1}  & 16 & 1 \\ \hline
-			\texttt{1} & 8 & 1 \\ \hline
-			\texttt{1} & 8 & 1 \\ \hline
-			\texttt{1} & 8 & 1 \\ \hline
-			\texttt{1} & 16 & 1 \\ \hline
-		\end{tabular}
-	\end{minipage}
+	\centering
+	\caption{Entries for the \texttt{forward} table.}
+	\label{forward}
+	\begin{tabular}{ | c | c | c |}
+		\hline
+		\textbf{Key} & \textbf{Action} & \textbf{Action Data} \\ \hline
+		08:11:11:11:11:08 & \verb|set_output_port| & 0b00000001 \\ \hline
+		08:22:22:22:22:08 & \verb|set_output_port| & 0b00000100 \\ \hline
+		08:33:33:33:33:08 & \verb|set_output_port| & 0b00010000 \\ \hline
+		08:44:44:44:44:08 & \verb|set_output_port| & 0b01000000 \\ \hline
+		ff:ff:ff:ff:ff:ff & \verb|set_output_port| & 0b01010101 \\ \hline
+	\end{tabular}
+\vspace{2em}
+	\centering
+	\caption{Entries for the \texttt{retransmit} table.}
+	\label{retransmit}
+	\begin{tabular}{ | c | c | c |}
+		\hline
+		\textbf{Key} & \textbf{Action} & \textbf{Action Data} \\ \hline
+		\texttt{792281630049477301766976897099}  & NoAction & \_ \\ \hline
+	\end{tabular}
 \end{table}
 
 Figure \ref{mapipe} illustrates the control flow program acting on a packet going through our match-action pipeline, which comprises two match-action tables: \texttt{forward} and \texttt{retransmit}.
@@ -226,25 +215,37 @@ P4 extern functions, or externs, are platform-specific functions that are not de
 	\end{center}
 \end{table}
 
-An extern function can be declared using the syntax \verb|extern void <name>_<extern_type>(in T1 in_data1, in T2 in_data2, ..., out D result);|. The following code sequence shows an example of declaring a afafa, dafaf:
+An extern function can be declared using the syntax
+
+{\renewcommand{\baselinestretch}{0.8}\small
+	\centering
+	\begin{verbatim}
+ extern void <name>_<extern_type>(in T1 data1,in T2 data2,...,out D result);
+	\end{verbatim}
+} 
+
+The following code sequence shows an example of declaring a simple longitudinal redundancy check hash extern:
 
 {\renewcommand{\baselinestretch}{0.8}\small
 	\begin{verbatim}
-	@Xilinx_MaxLatency(1)
-	@Xilinx_ControlWidth(0)
-	extern void hash_lrc(in T in_data, out D result);
+    @Xilinx_MaxLatency(1)
+    @Xilinx_ControlWidth(0)
+    extern void hash_lrc(in T in_data, out D result);
 	\end{verbatim}
 }
 where \texttt{@Xilinx\_MaxLatency} and \texttt{@Xilinx\_ControlWidth} are Xilinx P4-SDNet's additional annotations to allow P4 programmer to specify the number of clock cycles to complete the extern operation, and the width of the address space allocated to this register respectively. The control width should always be equal to the width of the index field so that the control plane can access all register entries.
 
-For this design, I defined the following externs using the available extern functions provided by p4$\rightarrow$NetFPGA:
+For this design, I defined the following externs using the available extern functions provided by P4$\rightarrow$NetFPGA:
 \begin{itemize}
-	\item 
-	\item 
+	\item \verb|hash_lrc|: a simple hash function that splits the input data into multiple words and \textit{XOR} each word together to obtain the result. The hash result is used to index into the registers.
+	\item \verb|seq_no_reg_praw|: stores the latest sequence number from the sender. This is updated when a new packet is received from the sender.
+	\item \verb|latest_ack_no_reg_praw|: stores the latest acknowledgement number from the receiver. This is updated when a new ACK packet is received from the receiver. 
+	\item \verb|pkts_cached_cnt_reg_raw|: stores the number of packets that the cache queue is buffering. This is updated when a new packet is buffered to, or when some packets are dropped or read from the cache queue.
+	\item \verb|ack_cnt_reg_praw|: stores the number of duplicate acknowledgements. This is updated when the switch received a duplicate acknowledgement, that is \verb|p.tcp.ackNo == latest_ack_no|. When the value of the counter reaches 2, the third duplicate acknowledgement will trigger the retransmission.
+	\item \verb|retransmit_cnt_reg_ifElseRaw|: stores the number of retransmission of the DUP ACK packet. Once a retransmission occurs, this counter will be set to 1. Subsequent DUP ACK packet will be sent back to the sender since the switch would now assume that the reason for packet loss is due to packet corruption.
 \end{itemize}
-MINUS Functionality
 
-An important feature of P4$\rightarrow$NetFPGA externs is that to guarantee consistency between successive packets, stateful operations cannot be pipelined; each performs an atomic read-modify-write operation per packet. In other words, each stateful atom can only be accessed \textit{one} time in the P4 code. Multiple calls to the extern function will generate multiple instances of the atom, thus giving unexpected results. This complicates my design since WE REQUIRE INTUITIVELY TO WRITE AND CHECK.
+An important feature of P4$\rightarrow$NetFPGA externs is that to guarantee consistency between successive packets, stateful operations cannot be pipelined; each performs an atomic read-modify-write operation per packet. In other words, each stateful atom can only be accessed \textit{one} time in the P4 code. Multiple calls to the extern function will generate multiple instances of the atom, thus giving unexpected results. This complicates my design since intuitively, we would usually require two operations to perform the logic. For instance, one needs to first perform a \textit{read} operation from the register to get the latest sequence number stored to determine if this packet is a new packet. If it is indeed a new packet, one then needs to perform a ``write'' operation to update the value of the latest sequence number stored.
 
 	\subsection{The Deparser}
 The inverse of parsing is deparsing, or packet assembly, where the outgoing packet is constructed by reassembling the packet headers as computed by the pipeline onto an outgoing packet byte stream. P4 does not provide a separate language for packet deparsing; deparsing is done in a \textbf{\texttt{control}} block that has at least one parameter of type \verb|packet_out| because it only involves sequential logic as used for actions. The advantage of this approach is that it makes deparsing explicit, but decouples it from parsing. 
@@ -272,21 +273,67 @@ A header is added to the packet using the \verb|packet_out| object's \texttt{emi
 \section{Hardware Implementation}
 	\label{sec:cachequeue}
 	\subsection{The Cache Queue}
-	
-	\subsection{The Output Arbiter}
-	All input interfaces share the same bandwidth (and therefore width) as the output stream to ensure that maximum throughput can be achieved. The input port buffering will be handled in the AXI Converter block.admits packets from the ports into the data path
-	
-	The function of this block is to merge a number of input streams into one output stream. All input interfaces share the same bandwidth (and therefore width) as the output stream to ensure that maximum throughput can be achieved. The input port buffering will be handled in the AXI Converter block.
-The P4$\rightarrow$NetFPGA platform comes with an input arbiter, which performs the following functions:
-\begin{itemize}
-	\item It receives packets from one of the physical input Ethernet ports, from the control plane, or from the input recirculation port.
-	\item For packets received from Ethernet ports, the block computes the Ethernet trailer checksum and verifies it. If the checksum does not match, the packet is discarded. If the checksum does match, it is removed from the packet payload.
-	\item Receiving a packet involves running an arbitration algorithm if multiple packets are available.
-	\item If the arbiter block is busy processing a previous packet and no queue space is available, input ports may drop arriving packets, without indicating the fact that the packets were dropped in any way.
-	\item After receiving a packet, the arbiter block sets the inCtrl.inputPort value that is an input to the match-action pipeline with the identity of the input port where the packet originated. Physical Ethernet ports are numbered 0 to 7, while the input recirculation port has a number 13 and the CPU port has the number 14. 
-\end{itemize}
-For our architecture, since we have two queues---the output queue and the cache queue---we would require an ``output'' arbiter for each of the five ports.
+The cache queue has the basic functionalities similar to those of the output queue of the NetFPGA reference switch design (see Figure \ref{fig:netfpga-ref-switch}): buffer packets from the SimpleSumeSwitch module while they wait to be sent to the output ports. However, since the role of the cache queue is to buffer packets to \textit{retransmit}, we want to be able to signal to the cache queue when to buffer a packet, when to drop a packet, when to read a packet and how many packets to drop. This is done by using the metadata of the packet. More specifically, recall from section \ref{sec:p4-netfpga} that the P4 programmer can define the format of the \verb|digest_data| bus. The only constraint is that it \textit{must} be defined to be 256 bits wide. Thus, to implement the signalling functiont to the cache queue, it is configured it as follows:
 
-	\subsection{The nf\_datapath -- Some better name}
+{\renewcommand{\baselinestretch}{0.8}\small
+	\begin{verbatim}
+    struct digest_data_t {
+      bit<72>  unused;
+      bit<104> flow_id;
+      bit<80> tuser;
+    }
+	\end{verbatim}
+}
+
+The \verb|digest_data| bus is then trimmed to the first 80 bits, and together with the \verb|sume_metadata| bus form the \texttt{tuser} signal. The format of the \texttt{tuser} signal and the \texttt{digest\_data} field are shown in Table \ref{tab:tuser} and \ref{tab:digest-data}.
+
+\begin{table}[!h]
+	\centering
+	\caption{Format of the \texttt{tuser} signal.}
+	\label{tab:tuser}
+	\begin{tabular}{ | c | c | >{\centering\arraybackslash}m{9.5cm} |}
+		\hline
+		\textbf{Bits} & \textbf{Name} & \textbf{Comments} \\ \hline
+		[15:0] & \verb|pkt_len| & Unsigned \verb|int| \\ \hline
+		[23:16] & \verb|src_port| & One-hot encoded: \{DMA, NF3, DMA, NF2, DMA, NF1, DMA, NF0\} \\ \hline
+		[31:24] & \verb|dst_port| & One-hot encoded: \{DMA, NF3, DMA, NF2, DMA, NF1, DMA, NF0\} \\ \hline
+		[39:32] & \verb|drop| & Only bit 32 is used \\ \hline
+		[47:40] & \verb|send_dig_to_cpu| & Only bit 40 is used \\ \hline
+		[127:48] & \verb|digest_data| & The first 80 bit of the \verb|digest_data| bus from the SimpleSumeSwitch module \\ \hline
+	\end{tabular}
+	\vspace{1em}
+	\centering
+	\caption{Format of the \texttt{digest\_data} field.}
+	\label{tab:digest-data}
+	\begin{tabular}{ | c | c | c |}
+		\hline
+		\textbf{Bits} & \textbf{Name} & \textbf{Comments} \\ \hline
+		[55:48] & \verb|cache_write| & Encoded: \{0, 0, 0, DMA, NF3, NF2, NF1, NF0\} \\ \hline
+		[63:56] & \verb|cache_read| & Encoded: \{0, 0, 0, DMA, NF3, NF2, NF1, NF0\} \\ \hline
+		[71:64] & \verb|cache_drop| & Encoded: \{0, 0, 0, DMA, NF3, NF2, NF1, NF0\} \\ \hline
+		[79:72] & \verb|cache_count| & Number of packets to read or drop \\ \hline
+		[127:80] & unused & - \\ \hline
+	\end{tabular}
+\end{table}
+
+NOTE: where should I explain what the \texttt{tuser} signal is? Also, should I explain the whole input and output, master and slave to each of the module and where should I explain that (if necessary)? And also the AXI components?
+
+	\subsection{The Output Arbiter}
+The NetFPGA reference switch design also comes with an input arbiter (see Figure \ref{fig:netfpga-ref-switch}) whose function is to merge multiple input streams into one output stream. All input interfaces share the same bandwidth (and therefore width) as the output stream to ensure that maximum throughput can be achieved. For our architecture (see Figure \ref{fig:modified-design}), since we have two queues---the output queue and the cache queue---we would require an ``output'' arbiter for each of the five output ports. 
+
+The only difference between the output arbiter and the input arbiter is the number of input streams: the input arbiter has 5 input streams from 5 RX queues while the output arbiter has only 2 input streams from the output queue and the cache queue. Thus, I simply duplicated the implementation of the input arbiter in the NetFPGA reference switch design and removed the extra 3 slave stream ports and changed the appropriate variables and wires to match the number of input streams.
+
+NOTE: Is this sufficient? I think that was all I did for the output arbiter.
+
+	\subsection{The Reference Switch Design}
+
+The \verb|nf_datapath.v| Verilog file describes the hardware structure of the reference switch design. It specifies the logical circuit of the design that allows for the automated analysis and simulation. I modified the NetFPGA reference switch design by adding the cache queue and the output arbiter HDL modules and wiring the inputs and outputs of each module accordingly. The wiring process is tedious, due to the large number of inputs and outputs of each module.
+	
+	\subsection{IP Core Generation}
+IP cores are stand-alone HDL modules. They are configurable and reusable.
+
+NOTE: I am not sure what to write here.
+	\subsection{Project Wrappers}
+NOTE: I am not sure what to write here.
 
 

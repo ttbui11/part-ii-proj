@@ -9,7 +9,7 @@ Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: References/references.bib
 Warning--entry type for "support" isn't style-file defined
---line 108 of file References/references.bib
+--line 115 of file References/references.bib
 Warning--I didn't find a database entry for ""
 -- IEEEtranN.bst version 1.14 (2015/08/26) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
@@ -21,45 +21,45 @@ Reallocated glb_str_end (elt_size=4) to 20 items from 10.
 Warning--empty booktitle in p4xos
 
 Done.
-You've used 22 entries,
+You've used 23 entries,
             4855 wiz_defined-function locations,
-            1061 strings with 12159 characters,
-and the built_in function-call counts, 17142 in all, are:
-= -- 1384
-> -- 613
-< -- 73
-+ -- 298
-- -- 154
-* -- 966
-:= -- 2557
-add.period$ -- 51
-call.type$ -- 22
-change.case$ -- 44
-chr.to.int$ -- 181
-cite$ -- 29
-duplicate$ -- 1166
-empty$ -- 1368
-format.name$ -- 183
-if$ -- 3846
+            1066 strings with 12210 characters,
+and the built_in function-call counts, 17631 in all, are:
+= -- 1431
+> -- 620
+< -- 74
++ -- 302
+- -- 156
+* -- 986
+:= -- 2646
+add.period$ -- 53
+call.type$ -- 23
+change.case$ -- 46
+chr.to.int$ -- 182
+cite$ -- 30
+duplicate$ -- 1202
+empty$ -- 1409
+format.name$ -- 186
+if$ -- 3950
 int.to.chr$ -- 1
-int.to.str$ -- 23
-missing$ -- 227
-newline$ -- 102
-num.names$ -- 48
-pop$ -- 679
+int.to.str$ -- 24
+missing$ -- 234
+newline$ -- 107
+num.names$ -- 51
+pop$ -- 705
 preamble$ -- 1
-purify$ -- 22
+purify$ -- 23
 quote$ -- 2
-skip$ -- 1215
+skip$ -- 1251
 stack$ -- 0
-substring$ -- 448
-swap$ -- 751
+substring$ -- 451
+swap$ -- 768
 text.length$ -- 14
 text.prefix$ -- 0
 top$ -- 6
-type$ -- 343
+type$ -- 358
 warning$ -- 1
-while$ -- 63
+while$ -- 65
 width$ -- 0
-write$ -- 261
+write$ -- 273
 (There were 3 warnings)

@@ -11,7 +11,7 @@
 	\begin{itemize}
 		\item \textbf{P4} is a language designed to describe packet processing logic in the packet forwarding planes. Besides, unlike general purpose languages such as C or Python, P4 is domain-specific with a number of constructs optimized around network data forwarding, hence is well-suited for implementing the forwarding plane of network elements such as our switch.
 	
-		\item \textbf{Python} was used extensively in the evaluation because of the \texttt{scapy} module, which enables the user to send, sniff, dissect and forge network packets. This capability allows me to write unit tests for my program by building customised packets, sending and checking them.
+		\item \textbf{Python} was used extensively in the evaluation because of the Scapy module \cite{scapy}, which enables the user to send, sniff, dissect and forge network packets. This capability allows me to write unit tests for my program by building customised packets, sending and checking them.
 		
 		\item \textbf{Verilog} was used to implement certain HDL modules within the P4-NetFPGA platform, in order to add or modify certain functionalities to suit the purpose of my design. It is the language of choice of the P4-NetFPGA platform.
 		
@@ -164,9 +164,17 @@ The limitation of this platform is that it requires a substantial knowledge in b
 \end{figure}
 
 \section{The P4$\rightarrow$NetFPGA Workflow}
-The \textit{SimpleSumeSwitch} (SSS) is the P4 architecture that is currently defined for the NetFPGA SUME board. The architecture consists of a single parser, a single match-action pipeline, and a single deparser, as shown in Figure \ref{sss}. The SSS is a great architecture because it is simple and easy to understand, yet remains flexible enough to allow developers to implement a variety of different networking protocols and algorithms. 
+\label{sec:p4-netfpga}
+The \textit{SimpleSumeSwitch} is the P4 architecture that is currently defined for the NetFPGA SUME board. The architecture consists of a single parser, a single match-action pipeline, and a single deparser, as shown in Figure \ref{sss}. The SimpleSumeSwitch is a great architecture because it is simple and easy to understand, yet remains flexible enough to allow developers to implement a variety of different networking protocols and algorithms. 
 
-The SimpleSumeSwitch’s \verb|sume_metadata| bus corresponds to the tuser bus in the SUME reference switch design, and is defined as follows:
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{sss.png}
+	\caption{Block diagram of the SimpleSumeSwitch P4 architecture used within the P4$\rightarrow$NetFPGA workflow. Source: \href{https://github.com/NetFPGA/P4-NetFPGA-public/wiki/Workflow-Overview\#simplesumeswitch-architecture}{P4$\rightarrow$NetFPGA Home Wiki}.} 
+	\label{sss}
+\end{figure}
+
+The SimpleSumeSwitch’s \verb|sume_metadata| bus is defined as follows:
 
 {\renewcommand{\baselinestretch}{0.8}\small
 	\begin{verbatim}
@@ -195,12 +203,9 @@ where the format of the \verb|dst_port| and \verb|src_port| fields is:
 
 and the functionality of each field is described by Table \ref{sume}. 
 
-\begin{figure}[!ht]
-	\centering
-	\includegraphics[width=0.9\textwidth]{sss.png}
-	\caption{Block diagram of the SimpleSumeSwitch P4 architecture used within the P4$\rightarrow$NetFPGA workflow. Source: \href{https://github.com/NetFPGA/P4-NetFPGA-public/wiki/Workflow-Overview\#simplesumeswitch-architecture}{P4$\rightarrow$NetFPGA Home Wiki}.} 
-	\label{sss}
-\end{figure}
+The format of the \verb|digest_data| bus is defined by the P4 programmer. The \verb|digest_data| and the \verb|sume_metadata| together form to the \texttt{tuser} bus in the SUME reference switch design.
+
+The format of the \verb|user_metadata| is also defined by the P4 programmer. It can be used to pass any additional information from the parser to the M/A pipeline and from the M/A pipeline to the deparser. The in/out \verb|control| signals are used to add/removed entries from tables and read/write control registers.
 
 \begin{table}[!ht]
 	\begin{center}
@@ -218,7 +223,7 @@ and the functionality of each field is described by Table \ref{sume}.
 	\end{center}
 \end{table}
 
-Figure \ref{p4-netfpga} outlines the automated P4$\rightarrow$NetFPGA workflow. We first write a P4 program which is compiled (by Xilinx P4-SDNet) into an HDL instance of the SSS architecture. The SSS module is then automatically integrated into the NetFPGA reference switch design by replacing the default Output Port Lookup module. The flexibility of the SSS architecture means that it could also be extended or completely replaced by writing a new architectural model. For this project, I will modify the NetFPGA Reference Switch Pipeline to include a Cache Queue that will buffer packets. Section \ref{sec:arch-design} will explain the customised architecture in more detail.
+Figure \ref{fig:p4-netfpga} outlines the automated P4$\rightarrow$NetFPGA workflow. We first write a P4 program which is compiled (by Xilinx P4-SDNet) into an HDL instance of the SimpleSumeSwitch architecture. The SimpleSumeSwitch module is then automatically integrated into the NetFPGA reference switch design by replacing the default Output Port Lookup module. The flexibility of the SimpleSumeSwitch architecture means that it could also be extended or completely replaced by writing a new architectural model. For this project, I will modify the NetFPGA Reference Switch Pipeline to include a Cache Queue that will buffer packets. Section \ref{sec:arch-design} will explain the customised architecture in more detail.
 
 To sum up, the P4$\rightarrow$NetFPGA workflow includes the following steps:
 \begin{enumerate}[label=(\arabic*)]
@@ -234,7 +239,7 @@ To sum up, the P4$\rightarrow$NetFPGA workflow includes the following steps:
 	\centering
 	\includegraphics[width=\textwidth]{p4-netfpga.png}
 	\caption{The automated P4$\rightarrow$NetFPGA compilation flow. P4 programs are compiled into an HDL instance of the SimpleSumeSwitch architecture, which is then used to replace the Output Port Lookup module in the NetFPGA Reference Switch Design.}
-	\label{p4-netfpga}
+	\label{fig:p4-netfpga}
 \end{figure}
 
 \section{Project Workflow}
@@ -245,7 +250,7 @@ To sum up, the P4$\rightarrow$NetFPGA workflow includes the following steps:
 	
 	Most of the time spent in setting up the NetFPGA environment went into getting approval for access to the live development repositories, including the P4$\rightarrow$NetFPGA and the NetFPGA-SUME codebase, and various licenses and tools necessary to use the P4$\rightarrow$NetFPGA toolchain (Xilinx P4-SDNet and Vivado Design Suite). Where appropriate, the licenses are quoted at the beginning of the file. The NetFPGA SUME board was already installed and configured, and is connected to a machine with the appropriate system requirements and dependencies located in the Computer Laboratory. To access the board from my personal device, I set up a Virtual Private Network (VPN) and \texttt{ssh} to the machine.
 	
-	Finally, I learned the P4$\rightarrow$NetFPGA workflow through a series of exercises, provided by the NetFPGA Github Organisation\footnote{\url{https://github.com/NetFPGA}}. The workflow provides a template for a general P4 program following the SSS architecture model, from which I will start to write my implementation, as stated in Section \ref{sec:start}. The main challenge of this part is learning Verilog and Tcl in a short amount of time.
+	Finally, I learned the P4$\rightarrow$NetFPGA workflow through a series of exercises, provided by the NetFPGA Github Organisation\footnote{\url{https://github.com/NetFPGA}}. The workflow provides a template for a general P4 program following the SimpleSumeSwitch architecture model, from which I will start to write my implementation, as stated in Section \ref{sec:start}. The main challenge of this part is learning Verilog and Tcl in a short amount of time.
 	
 	\subsection{Architecture Design Stage}
 	\label{sec:arch-design}
@@ -261,7 +266,7 @@ To sum up, the P4$\rightarrow$NetFPGA workflow includes the following steps:
 	\end{figure}
 
 	\subsubsection{System Level}
-	The first design uses a hash table to map flow number to another hash table with the packet sequence number as the key and the packet itself as the value. The flowchart showing the buffering logic of this design is given in Figure \ref{fig:flowchart}. However, this design does not work due to the limitations of SDNet and the SSS architecture of the NetFPGA platform. The SSS architecture only supports programmable packet processing, i.e. operations on packet headers only. This means that the P4 program would not be able to access the packet payload to store it in the second hash table. Hence, this design cannot be fully expressed in P4 alone.
+	The first design uses a hash table to map flow number to another hash table with the packet sequence number as the key and the packet itself as the value. The flowchart showing the buffering logic of this design is given in Figure \ref{fig:flowchart}. However, this design does not work due to the limitations of SDNet and the SimpleSumeSwitch architecture of the NetFPGA platform. The SimpleSumeSwitch architecture only supports programmable packet processing, i.e. operations on packet headers only. This means that the P4 program would not be able to access the packet payload to store it in the second hash table. Hence, this design cannot be fully expressed in P4 alone.
 	
 	\begin{landscape}
 		\begin{figure}[!ht]
@@ -272,7 +277,7 @@ To sum up, the P4$\rightarrow$NetFPGA workflow includes the following steps:
 		\end{figure}
 	\end{landscape}
 	
-	After careful study of the first design and the platform, I decided to add an additional HDL module that follows the SSS module in the NetFPGA reference switch pipeline. The additional HDL module is called the Cache Queue and it will buffer packets to be retransmitted. Our reference switch pipeline will now look like Figure \ref{fig:modified-design}. In this pipeline, when a packet exits the SSS module, it will be duplicated and buffered in both the output queue and the cache queue. While the output queue sends the packet to the output ports as soon as it can, the cache queue will hold on to the packet. Once there is a ``signal'' from another packet, the cache queue will drop or send the packet to the output accordingly. The role of the Output Arbiter is similar to that of the Input Arbiter---merging multiple input streams into one output stream---albeit having different names. Section \ref{sec:cachequeue} will explain the implementations of both the Cache Queue and the Output Arbiter in more detail.
+	After careful study of the first design and the platform, I decided to add an additional HDL module that follows the SimpleSumeSwitch module in the NetFPGA reference switch pipeline. The additional HDL module is called the Cache Queue and it will buffer packets to be retransmitted. Our reference switch pipeline will now look like Figure \ref{fig:modified-design}. In this pipeline, when a packet exits the SimpleSumeSwitch module, it will be duplicated and buffered in both the output queue and the cache queue. While the output queue sends the packet to the output ports as soon as it can, the cache queue will hold on to the packet. Once there is a ``signal'' from another packet, the cache queue will drop or send the packet to the output accordingly. The role of the Output Arbiter is similar to that of the Input Arbiter---merging multiple input streams into one output stream---albeit having different names. Section \ref{sec:cachequeue} will explain the implementations of both the Cache Queue and the Output Arbiter in more detail.
 	
 	\begin{figure}[!ht]
 		\centering
@@ -284,7 +289,7 @@ To sum up, the P4$\rightarrow$NetFPGA workflow includes the following steps:
 	\begin{figure}[!ht]
 		\centering
 		\includegraphics[width=0.6\textwidth]{modified-design.png}
-		\caption{Block diagram of the modified reference switch pipeline. Packets are duplicated after the SSS module and being buffered in the Cache Queue.}
+		\caption{Block diagram of the modified reference switch pipeline. Packets are duplicated after the SimpleSumeSwitch module and being buffered in the Cache Queue.}
 		\label{fig:modified-design}
 	\end{figure}
 		
