@@ -1,5 +1,7 @@
 \chapter{Evaluation}
-\textit{This chapter assesses the functionality of my implementation with regard to the initial requirements in simulation and in hardware. I then evaluate the performance of my design. Finally, I compare its performance to existing TCP fast retransmit mechanism.}
+\textit{This chapter assesses the functionality of my implementation in simulation and in hardware with regard to the initial requirements. I then evaluate the performance of my design. Finally, I compare its performance to existing TCP fast retransmit mechanism.}
+
+The objective of this chapter is to review Unbuckle’s success at meeting the original project success criteria and at delivering benefits over state-of-the-art key-value stores. Hence, I begin by discussing the original project success criteria and how Unbuckle meets (and exceeds) them. Then, I briefly discuss the testing strategies applied. An extensive quantitative evaluation to assess the performance impact of various optimisations is carried out. Finally, I compare the user-space and kernel versions of Unbuckle, and show that it outperforms contemporary optimised commercial key- value stores. Comparisons against research systems are also made, where I find Unbuckle is competitive.
 
 \section{Simulation Environment}
 It is generally easier to debug program behaviour in simulation than in hardware, and the purpose of the simulation environment is exactly that. For this purpose, the P4$\rightarrow$NetFPGA workflow provides a simulation environment with automated test benches. To run a simulation, we will provide the corresponding test bench with the testing scripts. We will modify the following files:

@@ -1,65 +1,117 @@
 \chapter{Implementation}
-%\textit{I give the overview of the project repository. I move on to explain the  }
-%
-%\section{Repository Overview}
-%
-%\dirtree{%
-%	.1 P4-NetFPGA.
-%		.2 project.
-%			.3 simple\_sume\_switch.
-%				.4 hw.
-%					.5 hdl.
-%						.6 nf\_datapath.v*.
-%				.4 test.
-%					.5 sim\_switch\_default.
-%						.6 run.py*.
-%			.3 src.
-%				.4 tcp\_retransmit.p4*.
-%				.4 commands.txt*.
-%			.3 testdata.
-%				.4 gen\_testdata.py*.
-%				.4 digest\_data.py*.
-%				.4 sss\_sdnet\_tuples.py*.
-%			.3 templates.
-%				.4 externs.
-%					.5 <externs\_type>.
-%						.6 hdl.
-%							.7 <externs\_type>\_template.v*.
-%		.2 lib.
-%			.3 hw.
-%				.4 contrib.
-%					.5 cores.
-%						.6 sss\_cache\_queues\_v1\_0\_0*.
-%				.4 std.
-%					.5 cores.
-%						.6 output\_arbiter\_v1\_0\_0*.
-%}
+\textit{This chapter discusses in detail the design and implementation of the functionalities of the programmable switch. First, I give the overview of the project repository and the design architecture. Then, I move on to describe the P4 implementation of the core logic of the switch. Lastly, I explain the hardware implementation from P4 program to the actual programmable switch.}
 
-\section{Software Implementation}
+\section{Repository Overview}
+\begin{figure}[!h]
+	\dirtree{%
+		.1 P4-NetFPGA.
+		.2 contrib-projects*.
+		.2 docs.
+		.2 lib*.
+		.2 tools.
+	}
+	\caption{The tree structure of the main project repository.}
+	\label{fig:project-overview}
+\end{figure}
+
+The project repository (Figure \ref{fig:project-overview}) comprises four main folders:
+\begin{itemize}
+	\item \textbf{\texttt{contrib-projects}}: contains the reference switch pipeline, the core logic of the switch in P4 and the testing scripts.
+	\item \verb|docs|: contains design documentations and user-guides.
+	\item \textbf{\texttt{lib}}: contains custom and reference IP Cores and software libraries.
+	\item \verb|tools|: contains scripts for automations: running simulations, etc.
+\end{itemize}
+
+The including \verb|contrib-projects| and \verb|lib| which contain the implementation of the design:
+\dirtree{%
+	.1 contrib-projects.
+		.2 simple\_sume\_switch.
+			.3 hw.
+				.4 hdl.
+					.5 nf\_datapath.v*.
+			.3 test.
+				.4 sim\_switch\_default.
+					.5 run.py*.
+		.2 src.
+			.3 tcp\_retransmit.p4*.
+			.3 commands.txt*.
+		.2 testdata.
+			.3 gen\_testdata.py*.
+			.3 digest\_data.py*.
+			.3 sss\_sdnet\_tuples.py*.
+		.2 templates.
+			.3 externs.
+				.4 <externs\_type>.
+					.5 hdl.
+						.6 <externs\_type>\_template.v*.
+}
+
+The \verb|lib| folder 
+\dirtree{%
+	.1 lib.
+		.2 hw.
+			.3 contrib.
+				.4 cores.
+					.5 sss\_cache\_queues\_v1\_0\_0*.
+			.3 std.
+				.4 cores.
+					.5 output\_arbiter\_v1\_0\_0*.
+}
+
+\section{Design Architecture}
+\label{sec:arch-design}
+Following the preparation stage, the first objective is to design the architecture of the switch. The P4 program will then follow the architecture to implement the core logic, making adjustments to the design where necessary.
+
+\subsection{Network Level}
+To mitigate last-hop drops that are not caused by congestion, the switch will embed the TCP fast retransmit mechanism and will be located in the Top of Rack (ToR) switch (one hop away from the receiver) and not the spine switch (in the core of the network), as illustrated in Figure \ref{fig:network}. Since the switch is programmable, it will be configured to buffer only packets from latency-sensitive high priority applications, identified by their flow ID, while transmitting other packets normally. This design avoids introducing unnecessary buffering of packets of other flows which is the cause of bufferbloat.
+\begin{figure}[!hb]
+	\centering
+	\includegraphics[width=\textwidth]{network.png}
+	\caption{The network-level view of the programmable switch. It will be located at the last hop before the receiver, and only performs the fast retransmit on packets from latency-sensitive applications, which are identified by their flow ID.}
+	\label{fig:network}
+\end{figure}
+
+\subsection{System Level}
+The initial design uses a hash table to map flow ID to another hash table with the packet sequence number as the key and the packet itself as the value. The flowchart showing the buffering logic of this design is given in Figure \ref{fig:flowchart}. 
+
+However, this design did not work due to the limitations of SDNet and the SimpleSumeSwitch architecture of the NetFPGA platform. The SimpleSumeSwitch architecture only supports programmable packet processing, i.e. operations on packet headers only. This means that the P4 program would not be able to access the packet payload to store it in the second hash table (indicated by the red block in Figure \ref{fig:flowchart}). Hence, this design cannot be fully expressed in P4 alone.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{flowchart.png}
+	\caption{Flowchart shows the packet buffering logic of the initial design.}
+	\label{fig:flowchart}
+\end{figure}
+
+After careful study of the initial design and the limitations of the platform, I decided to add an additional HDL module that follows the SimpleSumeSwitch module in the original NetFPGA reference switch pipeline (Figure \ref{fig:netfpga-ref-switch}). The additional module is called the \textit{Cache Queue} and it will buffer packets to be retransmitted. This addresses the issue of P4 programs being unable to access the packet payload. Our reference switch pipeline will now look like Figure \ref{fig:modified-design}. In this new pipeline, when a packet exits the SimpleSumeSwitch module, it will be duplicated and buffered in both the output queue and the cache queue. While the output queue sends the packet to the output ports as soon as it can, the cache queue will hold on to the packet. Once there is a ``signal'' from another packet, the cache queue will drop or send the packet to the output accordingly. The role of the Output Arbiter is similar to that of the Input Arbiter---merging multiple input streams into one output stream---albeit having different names. Section \ref{sec:hardware} will explain the implementations of both the Cache Queue and the Output Arbiter in more detail.
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.72\textwidth]{netfpga-ref-switch.png}
+	\caption{Block diagram of the original NetFPGA reference switch design.}
+	\label{fig:netfpga-ref-switch}
+\end{figure}
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.72\textwidth]{modified-design.png}
+	\caption{Block diagram of the modified reference switch pipeline. Packets are duplicated after the SimpleSumeSwitch module and being buffered in the Cache Queue. Red blocks represent additional modules. Blue blocks represent modules from the reference switch design that are modified.}
+	\label{fig:modified-design}
+\end{figure}
+
+\section{P4 Implementation}
 	\subsection{The Parser}
-Parsers are functions that are responsible for extracting headers out of an incoming packet, written in a state machine style. The following code sequence defines our parser with a \texttt{start} state:
+Parsers are functions that are responsible for extracting headers out of an incoming packet, written in a state machine style. We can declare a parser with the following code sequence:
 
 {\renewcommand{\baselinestretch}{0.8}\small
 	\begin{verbatim}
     // Parser Implementation
-    @Xilinx_MaxPacketRegion(8192)
+    @Xilinx_MaxPacketRegion(1024)
     parser TopParser(packet_in b, 
                     out Parsed_packet p, 
                     out user_metadata_t user_metadata,
                     out digest_data_t digest_data,
-                    inout sume_metadata_t sume_metadata) {
-      state start {
-        b.extract(p.ethernet);
-        user_metadata.unused = 0;
-        digest_data.unused = 0;
-        digest_data.flow_id = 0;
-        digest_data.tuser = 0;
-        transition select(p.ethernet.etherType) {
-          IPV4_TYPE: parse_ipv4;
-          default: reject;
-        } 
-      }   
-    }
+                    inout sume_metadata_t sume_metadata);
 	\end{verbatim}
 }
 where \texttt{@Xilinx\_MaxPacketRegion} is Xilinx P4-SDNet's additional annotation for parser/deparser that declares the largest packet size (in bits) the parser/deparser needs to support.
@@ -67,7 +119,7 @@ where \texttt{@Xilinx\_MaxPacketRegion} is Xilinx P4-SDNet's additional annotati
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.4\textwidth]{general-fsm.png}
-	\caption{Parser general FSM structure.}
+	\caption{The general state machine structure of a parser.}
 	\label{general-fsm}
 \end{figure}
  
@@ -79,16 +131,36 @@ Figure \ref{general-fsm} illustrates the general structure of a parser state mac
 \end{itemize}
 and other internal states that may be defined by the user. Parsers always start in the \texttt{start} state, execute one or more statements, then make a transition to the next state until reaching either the \texttt{accept} or \texttt{reject} states, which are distinct from the user-defined states and are logically outside of the parser. 
 
-An architecture must specify the behaviour when the \texttt{accept} and \texttt{reject} states are reached. For example, an architecture may specify that all packets reaching the \texttt{reject} state are dropped without further processing. Alternatively, it may specify that such packets are passed to the next block after the parser, with intrinsic metadata indicating that the parser reached the \texttt{reject} state, along with the error recorded. The SimpleSumeSwitch architecture adopts the former.
-
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\textwidth]{design-fsm.png}
-	\caption{The FSM of the design.}
+	\caption{The state machine of the design.}
 	\label{design-fsm}
 \end{figure}
 
-Figure \ref{design-fsm} describes the FSM structure of our parser, in which I defined two additional states \texttt{parse\_ipv4} and \texttt{parse\_tcp}:
+An architecture must specify the behaviour when the \texttt{accept} and \texttt{reject} states are reached. For example, an architecture may specify that all packets reaching the \texttt{reject} state are dropped without further processing. Alternatively, it may specify that such packets are passed to the next block after the parser, with intrinsic metadata indicating that the parser reached the \texttt{reject} state, along with the error recorded. The SimpleSumeSwitch architecture users the SDNet which does not support \texttt{reject}. Hence, the \texttt{reject} state is manually defined and implemented to drop all packets without further processing.
+
+Figure \ref{design-fsm} describes the state machine structure of our parser, which includes a \texttt{start} state (Figure \ref{start}) and two additional user-defined states \texttt{parse\_ipv4} (Figure \ref{parseipv4}) and \texttt{parse\_tcp} (Figure \ref{parsetcp}). The P4 \texttt{select} statement is used to branch in a parser. It is similar to \texttt{case} statement in C or Java, but without ``fall-through behaviour''---i.e., \texttt{break} statements are not needed. Here, our parser first uses the \verb|packet_in| object's \texttt{extract} method to fill out the fields of the Ethernet header. It also initialises the values of the \verb|user_metadata|'s field \verb|digest_data|'s fields to 0. It then transitions to either the \verb|parse_ipv4| state or the \texttt{reject} state based on the value of the Ethernet header’s \texttt{etherType} field. In the \texttt{parse\_ipv4} state, the parser extracts the packet's IPv4 header, looks at its \texttt{protocol} field and transitions to the \texttt{parse\_tcp} state only if it is \texttt{TCP\_TYPE} which is defined to be 6. Otherwise, the packet is rejected. Finally, in the \texttt{parse\_tcp} state, the parser simply extracts the TCP header and then transitions to the \texttt{accept} state, where the packet will be passed to the match-action pipeline. A \texttt{parse\_ethernet} state could be defined similarly to \verb|parse_ipv4| and \verb|parse_tcp|, but I decided to include the parsing of the Ethernet header within the \texttt{start} state, together with initialising the metadata, for simplicity.
+
+\begin{figure}[!h]
+	{\renewcommand{\baselinestretch}{0.8}\small
+		\begin{verbatim}
+     state start {
+       b.extract(p.ethernet);
+       user_metadata.unused = 0;
+       digest_data.unused = 0;
+       digest_data.flow_id = 0;
+       digest_data.tuser = 0;
+       transition select(p.ethernet.etherType) {
+         IPV4_TYPE: parse_ipv4;
+         default: reject;
+       } 
+     }
+		\end{verbatim}
+	}
+\caption{The definition of \texttt{start} state.}
+\label{start}
+\end{figure}
 
 \begin{figure}[!h]
 	\begin{minipage}{.48\textwidth}
@@ -104,6 +176,7 @@ Figure \ref{design-fsm} describes the FSM structure of our parser, in which I de
 		\end{verbatim}
 		}
  		\caption{The definition of \texttt{parse\_ipv4} state.}
+ 		\label{parseipv4}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{.48\textwidth}
@@ -119,10 +192,9 @@ Figure \ref{design-fsm} describes the FSM structure of our parser, in which I de
 		\end{verbatim}
 		}	
 		\caption{The definition of \texttt{parse\_tcp} state.}
+		\label{parsetcp}
 	\end{minipage}
 \end{figure}
-
-The P4 \texttt{select} statement is used to branch in a parser. It is similar to \texttt{case} statement in C or Java, but without ``fall-through behaviour''---i.e., \texttt{break} statements are not needed. Here, our parser first uses the \verb|packet_in| object's \texttt{extract} method to fill out the fields of the Ethernet header. It also initialises the values of the \verb|user_metadata|'s field \verb|digest_data|'s fields to 0. It then transitions to either the \verb|parse_ipv4| state or the \texttt{reject} state based on the value of the Ethernet header’s \texttt{etherType} field. In the \texttt{parse\_ipv4} state, the parser extracts the packet's IPv4 header, looks at its \texttt{protocol} field and transitions to the \texttt{parse\_tcp} state only if it is \texttt{TCP\_TYPE} which is defined to be 6. Otherwise, the packet is rejected. Finally, in the \texttt{parse\_tcp} state, the parser simply extracts the TCP header and then transitions to the \texttt{accept} state, where the packet will be passed to the match-action pipeline. A \texttt{parse\_ethernet} state could be defined similarly to \verb|parse_ipv4| and \verb|parse_tcp|, but I decided to include the parsing of the Ethernet header within the \texttt{start} state, together with initialising the metadata, for simplicity.
 		
 	\subsection{The Match-Action Pipeline}
 A match-action pipeline is a control block where the match-action packet processing logic is implemented. A match-action pipeline uses tables, actions, and imperative code (indicated by the \textbf{\texttt{control}} keyword) to manipulate input headers and metadata. This match-action processing model was originally introduced as the core around which the OpenFlow model for SDN was built \cite{}. Our match-action pipeline can be defined by the following code sequence:
@@ -235,14 +307,14 @@ The following code sequence shows an example of declaring a simple longitudinal 
 }
 where \texttt{@Xilinx\_MaxLatency} and \texttt{@Xilinx\_ControlWidth} are Xilinx P4-SDNet's additional annotations to allow P4 programmer to specify the number of clock cycles to complete the extern operation, and the width of the address space allocated to this register respectively. The control width should always be equal to the width of the index field so that the control plane can access all register entries.
 
-For this design, I defined the following externs using the available extern functions provided by P4$\rightarrow$NetFPGA:
+For this design, I defined the following new externs based on the available externs template provided by P4$\rightarrow$NetFPGA:
 \begin{itemize}
 	\item \verb|hash_lrc|: a simple hash function that splits the input data into multiple words and \textit{XOR} each word together to obtain the result. The hash result is used to index into the registers.
 	\item \verb|seq_no_reg_praw|: stores the latest sequence number from the sender. This is updated when a new packet is received from the sender.
 	\item \verb|latest_ack_no_reg_praw|: stores the latest acknowledgement number from the receiver. This is updated when a new ACK packet is received from the receiver. 
 	\item \verb|pkts_cached_cnt_reg_raw|: stores the number of packets that the cache queue is buffering. This is updated when a new packet is buffered to, or when some packets are dropped or read from the cache queue.
 	\item \verb|ack_cnt_reg_praw|: stores the number of duplicate acknowledgements. This is updated when the switch received a duplicate acknowledgement, that is \verb|p.tcp.ackNo == latest_ack_no|. When the value of the counter reaches 2, the third duplicate acknowledgement will trigger the retransmission.
-	\item \verb|retransmit_cnt_reg_ifElseRaw|: stores the number of retransmission of the DUP ACK packet. Once a retransmission occurs, this counter will be set to 1. Subsequent DUP ACK packet will be sent back to the sender since the switch would now assume that the reason for packet loss is due to packet corruption.
+	\item \verb|retransmit_cnt_reg_ifElseRaw|: stores the number of retransmission of the DUP ACK packet. Once a retransmission occurs, this counter will be set to 1. Subsequent DUP ACK packet will be sent back to the sender since the switch would now assume that the reason for packet loss is not due to a momentary failure, but rather to true congestion or inability to sustain the data rate.
 \end{itemize}
 
 An important feature of P4$\rightarrow$NetFPGA externs is that to guarantee consistency between successive packets, stateful operations cannot be pipelined; each performs an atomic read-modify-write operation per packet. In other words, each stateful atom can only be accessed \textit{one} time in the P4 code. Multiple calls to the extern function will generate multiple instances of the atom, thus giving unexpected results. This complicates my design since intuitively, we would usually require two operations to perform the logic. For instance, one needs to first perform a \textit{read} operation from the register to get the latest sequence number stored to determine if this packet is a new packet. If it is indeed a new packet, one then needs to perform a ``write'' operation to update the value of the latest sequence number stored.
@@ -250,7 +322,7 @@ An important feature of P4$\rightarrow$NetFPGA externs is that to guarantee cons
 	\subsection{The Deparser}
 The inverse of parsing is deparsing, or packet assembly, where the outgoing packet is constructed by reassembling the packet headers as computed by the pipeline onto an outgoing packet byte stream. P4 does not provide a separate language for packet deparsing; deparsing is done in a \textbf{\texttt{control}} block that has at least one parameter of type \verb|packet_out| because it only involves sequential logic as used for actions. The advantage of this approach is that it makes deparsing explicit, but decouples it from parsing. 
 
-A header is added to the packet using the \verb|packet_out| object's \texttt{emit} method. following code block, which implements the deparser of the switch, first writes an Ethernet header, followed by an IPv4 header, and then a TCP header into a \verb|packet_out|. Since emitting a header appends the header to the \verb|packet_out| only if the header is valid, P4 first checks the validity of the headers before serialising them.
+A header is added to the packet using the \verb|packet_out| object's \texttt{emit} method. The following code block, which implements the deparser of the switch, first writes an Ethernet header, followed by an IPv4 header, and then a TCP header into a \verb|packet_out|. Since emitting a header appends the header to the \verb|packet_out| only if the header is valid, P4 first checks the validity of the headers before serialising them.
 
 {\renewcommand{\baselinestretch}{0.8}\small
 \begin{verbatim}
@@ -271,7 +343,7 @@ A header is added to the packet using the \verb|packet_out| object's \texttt{emi
 }
 
 \section{Hardware Implementation}
-	\label{sec:cachequeue}
+	\label{sec:hardware}
 	\subsection{The Cache Queue}
 The cache queue has the basic functionalities similar to those of the output queue of the NetFPGA reference switch design (see Figure \ref{fig:netfpga-ref-switch}): buffer packets from the SimpleSumeSwitch module while they wait to be sent to the output ports. However, since the role of the cache queue is to buffer packets to \textit{retransmit}, we want to be able to signal to the cache queue when to buffer a packet, when to drop a packet, when to read a packet and how many packets to drop. This is done by using the metadata of the packet. More specifically, recall from section \ref{sec:p4-netfpga} that the P4 programmer can define the format of the \verb|digest_data| bus. The only constraint is that it \textit{must} be defined to be 256 bits wide. Thus, to implement the signalling functiont to the cache queue, it is configured it as follows:
 
@@ -319,11 +391,10 @@ The \verb|digest_data| bus is then trimmed to the first 80 bits, and together wi
 NOTE: where should I explain what the \texttt{tuser} signal is? Also, should I explain the whole input and output, master and slave to each of the module and where should I explain that (if necessary)? And also the AXI components?
 
 	\subsection{The Output Arbiter}
+	
 The NetFPGA reference switch design also comes with an input arbiter (see Figure \ref{fig:netfpga-ref-switch}) whose function is to merge multiple input streams into one output stream. All input interfaces share the same bandwidth (and therefore width) as the output stream to ensure that maximum throughput can be achieved. For our architecture (see Figure \ref{fig:modified-design}), since we have two queues---the output queue and the cache queue---we would require an ``output'' arbiter for each of the five output ports. 
 
-The only difference between the output arbiter and the input arbiter is the number of input streams: the input arbiter has 5 input streams from 5 RX queues while the output arbiter has only 2 input streams from the output queue and the cache queue. Thus, I simply duplicated the implementation of the input arbiter in the NetFPGA reference switch design and removed the extra 3 slave stream ports and changed the appropriate variables and wires to match the number of input streams.
-
-NOTE: Is this sufficient? I think that was all I did for the output arbiter.
+The only difference between the output arbiter and the input arbiter is the number of input streams: the input arbiter has 5 input streams from 5 RX queues while the output arbiter has only 2 input streams from the output queue and the cache queue. Thus, I duplicated the implementation of the input arbiter in the NetFPGA reference switch design and removed the extra 3 slave stream ports and changed the appropriate variables and wires to match the number of input streams.
 
 	\subsection{The Reference Switch Design}
 
@@ -331,9 +402,3 @@ The \verb|nf_datapath.v| Verilog file describes the hardware structure of the re
 	
 	\subsection{IP Core Generation}
 IP cores are stand-alone HDL modules. They are configurable and reusable.
-
-NOTE: I am not sure what to write here.
-	\subsection{Project Wrappers}
-NOTE: I am not sure what to write here.
-
-
