@@ -1,0 +1,29 @@
+Appendix \ref{sec:reproduce} gives the specification of the test machine and the required software and equiment to reproduce the results presented in the dissertation.
+\section{Test Machine}
+The following machine, software and equipment were used:
+\begin{itemize}[leftmargin=*, noitemsep]
+	\item A PC with Ubuntu 14.04.5 LTS (GNU/Linux 4.4.0-83-generic x86\_64).
+	\item Xilinx Vivado 2018.2 (License)
+	\item Xilinx P4-SDNet (License)
+	\item Xilinx 10G MAC (License)
+	\item The NetFPGA SUME board.
+\end{itemize}
+\section{Scripts}
+The steps to reproduce the SDNet simulation, SUME simulation and hardware-based test are as followed:
+\begin{enumerate}[leftmargin=*, noitemsep]
+	\item Go to the repository:\\
+{\centering	\verb|cd P4-NetFPGA/|}
+	\item Update the environment variables:\\
+	 \verb|source tools/setting.sh|
+	\item To run both the SDNet and SUME simulation:\\
+	 \verb|cd $P4_DESIGN_DIR && make workflow|
+	\item To run the SDNet simulation only:\\
+	 \verb|cd $P4_DESIGN_DIR && make vivado_sim|
+	\item To run the SUME simulation only:\\
+	 \verb|cd $P4_DESIGN_DIR && make sume_sim|
+	\item Once the SUME simulation finishes, to run the hardware test:\\
+	 \verb|cd $SUME_FOLDER| \\
+	 \verb|./tools/scripts/nf_test.py hw --major switch --minor default|
+	\item Once the hardware test finishes, to compile the bitstream for FPGA:\\
+	 \verb|cd $NF_DESIGN_DIR && make|
+\end{enumerate}

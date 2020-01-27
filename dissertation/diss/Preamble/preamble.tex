@@ -5,8 +5,8 @@
 % Set {innerside margin / outerside margin / topmargin / bottom margin}  and
 % other page dimensions
 \ifsetCustomMargin
-  \RequirePackage[left=30mm,right=25mm,top=25mm,bottom=25mm]{geometry}
-  \setFancyHdr % To apply fancy header after geometry package is loaded
+\RequirePackage[left=30mm,right=25mm,top=25mm,bottom=25mm]{geometry}
+\setFancyHdr % To apply fancy header after geometry package is loaded
 \fi
 
 % Add spaces between paragraphs
@@ -24,22 +24,22 @@
 % Add `customfont' in the document class option to use this section
 
 \ifsetCustomFont
-  % Set your custom font here and use `customfont' in options. Leave empty to
-  % load computer modern font (default LaTeX font).
-  %\RequirePackage{helvet}
+% Set your custom font here and use `customfont' in options. Leave empty to
+% load computer modern font (default LaTeX font).
+%\RequirePackage{helvet}
 
-  % For use with XeLaTeX
-  %  \setmainfont[
-  %    Path              = ./libertine/opentype/,
-  %    Extension         = .otf,
-  %    UprightFont = LinLibertine_R,
-  %    BoldFont = LinLibertine_RZ, % Linux Libertine O Regular Semibold
-  %    ItalicFont = LinLibertine_RI,
-  %    BoldItalicFont = LinLibertine_RZI, % Linux Libertine O Regular Semibold Italic
-  %  ]
-  %  {libertine}
-  %  % load font from system font
-  %  \newfontfamily\libertinesystemfont{Linux Libertine O}
+% For use with XeLaTeX
+%  \setmainfont[
+%    Path              = ./libertine/opentype/,
+%    Extension         = .otf,
+%    UprightFont = LinLibertine_R,
+%    BoldFont = LinLibertine_RZ, % Linux Libertine O Regular Semibold
+%    ItalicFont = LinLibertine_RI,
+%    BoldItalicFont = LinLibertine_RZI, % Linux Libertine O Regular Semibold Italic
+%  ]
+%  {libertine}
+%  % load font from system font
+%  \newfontfamily\libertinesystemfont{Linux Libertine O}
 \fi
 
 % *******************************************************************************
@@ -58,6 +58,11 @@
 
 \RequirePackage[,tableposition=top]{caption} % labelsep=space for space 
 \renewcommand{\figurename}{Figure} %to support older versions of captions.sty
+\hypersetup{
+	colorlinks=true,
+	allcolors=blue
+}
+
 
 % *************************** Graphics and figures *****************************
 
@@ -201,5 +206,12 @@
 % Example todo: \mynote{Hey! I have a note}
 
 % *****************************************************************************
-% ******************* Better enumeration my MB*************
+% ******************* Better enumeration my MB *************
 \usepackage{enumitem}
+
+% ******************************** Spacing **********************************
+\usepackage[big,compact]{titlesec}
+\titlespacing*{\chapter}{0pt}{1ex}{1ex}
+\titlespacing*{\section}{0pt}{0.75ex}{0.75ex}
+\titlespacing*{\subsection}{0pt}{0.5ex}{0.5ex}
+\titlespacing*{\subsubsection}{0pt}{0.25ex}{0.25ex}

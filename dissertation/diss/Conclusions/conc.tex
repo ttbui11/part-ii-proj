@@ -1,22 +1,21 @@
 \chapter{Conclusion}
 \section{Accomplishments}
-Overall, the project achieved its aim of implementing and evaluating a programmable switch that is capable of assisting the fast retransmit process of TCP. The switch functionalities were evaluated in two different environments: a simulation environment and a hardware test. 
+This dissertation has described the design, implementation and evaluation of using a programmable switch to fast retransmit TCP packet losses that are not due to congestion. Overall, the project achieved its original aims as the switch functionalities passed the simulations for correctness and behaved correctly in hardware. Its performance has also been analysed and evaluated, where it performed reasonably close to a standard switch in various aspects.
 
-With the benefit of hindsight, I would have implemented the architecture prior to starting the project and used it as the starting point. This would have enabled me to focus more on evaluating and give more time to explore useful extensions.
+Personally, I have enjoyed this fascinating opportunity to enhance my knowledge in the field of computer networking, especially high-performance networks. I undertook this project to further comprehend and appreciate the intricacy of TCP congestion control mechanism, the potential of data plane programmability and how they can be used together to improve cross-datacentre performance.
+
+Finally, this project also contributed to my personal development by improving my software engineering and technical writing skills.
+
+\section{Lessons Learnt}
+The process of transforming an initial idea into a working programmable switch was extremely enjoyable. However, a considerable amount of time was spent on learning the languages, the development environments and their limitations, and designing the architecture. With the benefit of hindsight, I would have familiarised myself with the languages and tools, and implemented the architecture prior to starting the project, then used those as the starting point. This would have given me more time to focus on testing and evaluating the design, and explore useful extensions, so that the programmable switch can improve the performance with real traffic. 
 
 \section{Future Work}
+The project is complete in the sense that it satisfies the initial project requirements. Nevertheless, there are many promising avenues for further improvement that were not explored due to time constraints. These include:
 
-Many promising avenues for further improvement were not explored due to time constraints:
-
-\begin{itemize}
-	\item \textbf{Supporting multiple packet sizes}. The current design only supports a single packet size, defined at configuration time. It would definitely be more useful if the design could support multiple packet sizes dynamically, without first specifying them.
+\begin{itemize}[leftmargin=*, noitemsep]
+	\item \textbf{Supporting multiple packet sizes}. The current design only supports a single packet size, defined at compile time. It would definitely be more useful if the design could support multiple packet sizes dynamically, without first specifying them.
 	
-	\item \textbf{Supporting multiple flows}. It would also be useful to have one programmable switch to serve different applications between the same sender and receiver. The current design only supports one single flow since it only has one cache queue. Adding more cache queues would require a more complicated mechanism to signal a specific cache queue. 
+	\item \textbf{Supporting multiple flows}. It would also be useful to have one programmable switch to serve different applications between the same sender and receiver. With only one cache queue available, the current design only supports one single flow. Adding more cache queues would require a more complicated mechanism to signal a particular cache queue. 
 	
-	\item \textbf{Dynamic configuration}. The configurations of the flow and the packet size are currently pre-defined and embedded within the P4 code. A more flexible design could allow the user to adaptively installing and removing flows to monitor, as well as to configure the flow. 
-	
+	\item \textbf{Dynamic configuration}. The configurations of the flow and the packet size are currently pre-defined and embedded within the P4 code. A more flexible design could allow the user adaptively installing and removing flows to monitor, as well as to configure the flow. 
 \end{itemize}
-
-\paragraph{Closing Remarks}\ 
-
-This project has been a fascinating opportunity to explore the field of computer networking, especially high-performance networking, comprehend and appreciate the intricacy of TCP congestion control mechanism and the potential of data plane programmability. The project has achieved most of its goals and attempted to investigate and evaluate a modification to assist TCP fast retransmit algorithm, providing a starting point for future improvements. This project has also contributed to my personal development by improving my software engineering and technical writing skills.

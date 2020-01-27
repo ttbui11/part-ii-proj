@@ -1,49 +1,63 @@
 \thispagestyle {empty}
-\contentsline {chapter}{\numberline {1}Introduction}{7}{chapter.1}
-\contentsline {section}{\numberline {1.1}Motivation}{7}{section.1.1}
-\contentsline {section}{\numberline {1.2}Project Aims}{8}{section.1.2}
-\contentsline {section}{\numberline {1.3}Related Work}{9}{section.1.3}
-\contentsline {subsection}{\numberline {1.3.1}TCP Congestion Control}{9}{subsection.1.3.1}
-\contentsline {subsection}{\numberline {1.3.2}Programmable Data Planes}{9}{subsection.1.3.2}
-\contentsline {chapter}{\numberline {2}Preparation}{11}{chapter.2}
-\contentsline {section}{\numberline {2.1}Software Used}{11}{section.2.1}
-\contentsline {subsection}{\numberline {2.1.1}Development Environment}{11}{subsection.2.1.1}
-\contentsline {subsection}{\numberline {2.1.2}Programming Languages}{12}{subsection.2.1.2}
-\contentsline {section}{\numberline {2.2}Starting Point}{13}{section.2.2}
-\contentsline {section}{\numberline {2.3}Requirements Analysis}{14}{section.2.3}
-\contentsline {section}{\numberline {2.4}The P4 Language}{15}{section.2.4}
-\contentsline {section}{\numberline {2.5}The Xilinx SDNet}{17}{section.2.5}
-\contentsline {section}{\numberline {2.6}The NetFPGA Platform}{18}{section.2.6}
-\contentsline {section}{\numberline {2.7}The P4$\rightarrow $NetFPGA Workflow}{19}{section.2.7}
-\contentsline {section}{\numberline {2.8}Project Workflow}{21}{section.2.8}
-\contentsline {subsection}{\numberline {2.8.1}Preparation Stage}{21}{subsection.2.8.1}
-\contentsline {subsection}{\numberline {2.8.2}Implementation Stage}{22}{subsection.2.8.2}
-\contentsline {subsection}{\numberline {2.8.3}Risk Analysis}{22}{subsection.2.8.3}
-\contentsline {subsection}{\numberline {2.8.4}Backup Plan}{23}{subsection.2.8.4}
-\contentsline {chapter}{\numberline {3}Implementation}{25}{chapter.3}
-\contentsline {section}{\numberline {3.1}Repository Overview}{25}{section.3.1}
-\contentsline {section}{\numberline {3.2}Design Architecture}{26}{section.3.2}
-\contentsline {subsection}{\numberline {3.2.1}Network Level}{26}{subsection.3.2.1}
-\contentsline {subsection}{\numberline {3.2.2}System Level}{27}{subsection.3.2.2}
-\contentsline {section}{\numberline {3.3}P4 Implementation}{28}{section.3.3}
-\contentsline {subsection}{\numberline {3.3.1}The Parser}{28}{subsection.3.3.1}
-\contentsline {subsection}{\numberline {3.3.2}The Match-Action Pipeline}{32}{subsection.3.3.2}
-\contentsline {subsection}{\numberline {3.3.3}The Extern Functions}{34}{subsection.3.3.3}
-\contentsline {subsection}{\numberline {3.3.4}The Deparser}{35}{subsection.3.3.4}
-\contentsline {section}{\numberline {3.4}Hardware Implementation}{36}{section.3.4}
-\contentsline {subsection}{\numberline {3.4.1}The Cache Queue}{36}{subsection.3.4.1}
-\contentsline {subsection}{\numberline {3.4.2}The Output Arbiter}{37}{subsection.3.4.2}
-\contentsline {subsection}{\numberline {3.4.3}The Reference Switch Design}{38}{subsection.3.4.3}
-\contentsline {subsection}{\numberline {3.4.4}IP Core Generation}{38}{subsection.3.4.4}
-\contentsline {chapter}{\numberline {4}Evaluation}{39}{chapter.4}
-\contentsline {section}{\numberline {4.1}Simulation Environment}{39}{section.4.1}
-\contentsline {subsection}{\numberline {4.1.1}SDNet Simulation}{40}{subsection.4.1.1}
-\contentsline {subsection}{\numberline {4.1.2}SUME simulation}{42}{subsection.4.1.2}
-\contentsline {section}{\numberline {4.2}Hardware Test}{42}{section.4.2}
-\contentsline {section}{\numberline {4.3}Performance Evaluation}{42}{section.4.3}
-\contentsline {section}{\numberline {4.4}Comparison with TCP}{42}{section.4.4}
-\contentsline {chapter}{\numberline {5}Conclusion}{43}{chapter.5}
-\contentsline {section}{\numberline {5.1}Accomplishments}{43}{section.5.1}
-\contentsline {section}{\numberline {5.2}Future Work}{43}{section.5.2}
-\contentsline {paragraph}{Closing Remarks}{44}{section*.11}
-\contentsline {chapter}{Bibliography}{45}{chapter*.12}
+\contentsline {chapter}{List of figures}{7}{chapter*.3}
+\contentsline {chapter}{\numberline {1}Introduction}{10}{chapter.1}
+\contentsline {section}{\numberline {1.1}Motivation}{10}{section.1.1}
+\contentsline {section}{\numberline {1.2}Project Aims}{11}{section.1.2}
+\contentsline {section}{\numberline {1.3}Related Work}{12}{section.1.3}
+\contentsline {subsection}{\numberline {1.3.1}TCP Congestion Control in Data Centres}{12}{subsection.1.3.1}
+\contentsline {subsection}{\numberline {1.3.2}Programmable Data Planes}{13}{subsection.1.3.2}
+\contentsline {chapter}{\numberline {2}Preparation}{14}{chapter.2}
+\contentsline {section}{\numberline {2.1}Software Used}{14}{section.2.1}
+\contentsline {subsection}{\numberline {2.1.1}Development Environment}{14}{subsection.2.1.1}
+\contentsline {subsection}{\numberline {2.1.2}Programming Languages}{15}{subsection.2.1.2}
+\contentsline {section}{\numberline {2.2}Starting Point}{16}{section.2.2}
+\contentsline {section}{\numberline {2.3}Requirements Analysis}{16}{section.2.3}
+\contentsline {section}{\numberline {2.4}The P4 Language}{17}{section.2.4}
+\contentsline {section}{\numberline {2.5}The Xilinx SDNet}{19}{section.2.5}
+\contentsline {section}{\numberline {2.6}The NetFPGA Platform}{20}{section.2.6}
+\contentsline {section}{\numberline {2.7}The P4$\rightarrow $NetFPGA Workflow}{21}{section.2.7}
+\contentsline {section}{\numberline {2.8}Project Workflow}{24}{section.2.8}
+\contentsline {subsection}{\numberline {2.8.1}Preparation Stage}{24}{subsection.2.8.1}
+\contentsline {subsection}{\numberline {2.8.2}Implementation Stage}{24}{subsection.2.8.2}
+\contentsline {subsection}{\numberline {2.8.3}Risk Analysis}{25}{subsection.2.8.3}
+\contentsline {subsection}{\numberline {2.8.4}Backup Plan}{25}{subsection.2.8.4}
+\contentsline {chapter}{\numberline {3}Implementation}{27}{chapter.3}
+\contentsline {section}{\numberline {3.1}System Architecture}{27}{section.3.1}
+\contentsline {subsection}{\numberline {3.1.1}Network Level}{27}{subsection.3.1.1}
+\contentsline {subsection}{\numberline {3.1.2}System Level}{28}{subsection.3.1.2}
+\contentsline {section}{\numberline {3.2}P4 Implementation}{30}{section.3.2}
+\contentsline {subsection}{\numberline {3.2.1}The Parser}{30}{subsection.3.2.1}
+\contentsline {subsection}{\numberline {3.2.2}The Match-Action Pipeline}{32}{subsection.3.2.2}
+\contentsline {subsection}{\numberline {3.2.3}The Extern Functions}{34}{subsection.3.2.3}
+\contentsline {subsection}{\numberline {3.2.4}The Deparser}{38}{subsection.3.2.4}
+\contentsline {section}{\numberline {3.3}Verilog Implementation}{39}{section.3.3}
+\contentsline {subsection}{\numberline {3.3.1}The Cache Queue}{39}{subsection.3.3.1}
+\contentsline {subsection}{\numberline {3.3.2}The Output Arbiter}{40}{subsection.3.3.2}
+\contentsline {subsection}{\numberline {3.3.3}The NetFPGA Datapath}{41}{subsection.3.3.3}
+\contentsline {subsection}{\numberline {3.3.4}IP Cores Generation}{41}{subsection.3.3.4}
+\contentsline {subsubsection}{Summary}{42}{subsection.3.3.4}
+\contentsline {chapter}{\numberline {4}Evaluation}{43}{chapter.4}
+\contentsline {section}{\numberline {4.1}Overall Results}{43}{section.4.1}
+\contentsline {section}{\numberline {4.2}Simulation Environment}{44}{section.4.2}
+\contentsline {subsection}{\numberline {4.2.1}Test Data Generation}{45}{subsection.4.2.1}
+\contentsline {subsection}{\numberline {4.2.2}SDNet Simulation}{48}{subsection.4.2.2}
+\contentsline {subsection}{\numberline {4.2.3}SUME simulation}{48}{subsection.4.2.3}
+\contentsline {section}{\numberline {4.3}Hardware Test}{50}{section.4.3}
+\contentsline {section}{\numberline {4.4}Performance Evaluation}{50}{section.4.4}
+\contentsline {subsection}{\numberline {4.4.1}Performance Analysis}{50}{subsection.4.4.1}
+\contentsline {subsubsection}{Latency}{51}{subsection.4.4.1}
+\contentsline {subsubsection}{Throughput}{51}{figure.4.9}
+\contentsline {subsubsection}{Resources Used}{52}{figure.4.10}
+\contentsline {subsection}{\numberline {4.4.2}Interoperability}{52}{subsection.4.4.2}
+\contentsline {subsection}{\numberline {4.4.3}Limitations}{54}{subsection.4.4.3}
+\contentsline {chapter}{\numberline {5}Conclusion}{55}{chapter.5}
+\contentsline {section}{\numberline {5.1}Accomplishments}{55}{section.5.1}
+\contentsline {section}{\numberline {5.2}Lessons Learnt}{55}{section.5.2}
+\contentsline {section}{\numberline {5.3}Future Work}{56}{section.5.3}
+\contentsline {chapter}{Bibliography}{57}{chapter*.7}
+\contentsline {chapter}{\numberline {A}Repository Overview}{61}{appendix.A}
+\contentsline {chapter}{\numberline {B}Figures and Tables}{63}{appendix.B}
+\contentsline {chapter}{\numberline {C}Reproducibility}{65}{appendix.C}
+\contentsline {section}{\numberline {C.1}Test Machine}{65}{section.C.1}
+\contentsline {section}{\numberline {C.2}Scripts}{65}{section.C.2}
+\contentsline {chapter}{\numberline {D}Project Proposal}{67}{appendix.D}

@@ -1,0 +1,50 @@
+The project repository comprises four main folders:\\
+		\dirtree{%
+			.1 P4-NetFPGA.
+			.2 contrib-projects.
+			.2 docs.
+			.2 lib.
+			.2 tools.
+		}
+\begin{itemize}[leftmargin=*, noitemsep]
+	\item \texttt{contrib-projects}: contains the reference switch pipeline, the core logic of the switch in P4 and the testing scripts.
+	\item \verb|docs|: contains design documentations and user-guides.
+	\item \texttt{lib}: contains custom and reference IP Cores and software libraries.
+	\item \verb|tools|: contains scripts for automations: running simulations, etc.
+\end{itemize}
+
+The \verb|contrib-projects|, \verb|lib| and \verb|tools| folders contain the P4 (*) and Verilog (**) implementation of the design:\\
+\dirtree{%
+	.1 contrib-projects.
+		.2 sume\_sdnet\_switch/projects/tcp\_retransmit.
+			.3 simple\_sume\_switch/hw.
+				.4 hdl/nf\_datapath.v**.
+				.4 tcl.
+					.5 simple\_sume\_switch.tcl.
+					.5 simple\_sume\_switch\_sim.tcl.
+			.3 test/sim\_switch\_default.
+				.4 run.py**.
+		.2 src.
+			.3 tcp\_retransmit.p4*.
+			.3 commands.txt*.
+		.2 testdata.
+			.3 gen\_testdata.py*.
+			.3 digest\_data.py*.
+			.3 sss\_sdnet\_tuples.py*.
+		.2 templates.
+			.3 externs/<externs\_type>/hdl/<externs\_type>\_template.v**.
+}
+\vspace*{5mm}
+\dirtree{%
+	.1 lib.
+		.2 hw.
+			.3 contrib/cores.
+				.4 sss\_cache\_queues\_v1\_0\_0**.
+			.3 std/cores.
+				.4 output\_arbiter\_v1\_0\_0**.
+}
+\vspace*{5mm}
+\dirtree{%
+	.1 tools.
+		.2 scripts/NFTest/nf\_test.py**.
+}

@@ -2,6 +2,8 @@
 
 I, Thanh Bui of Downing College, being a candidate for Part II of the Computer Science Tripos, hereby declare that this dissertation and the work described in it are my own work, unaided except as may be specified below, and that the dissertation does not contain material that has already been used to any substantial extent for a comparable purpose.
 
+I, Thanh Bui of Downing College, am content for my dissertation to be made available to the students and staff of the University. 
+
 \begin{minipage}[t]{0.4\textwidth}
 	\vspace*{1.5cm}  % leave some space above the horizontal line
 	\hrule
@@ -24,7 +26,7 @@ I, Thanh Bui of Downing College, being a candidate for Part II of the Computer S
 
 {\large
 \begin{tabular}{ l@{\hskip 3.25em} p{11cm}}
-	Candidate No.:               & \bf Thanh Bui \\
+	Name:               & \bf 2385F \\
 	College:            & \bf Downing College \\
 	Project Title:      & \bf An accelerated, network-assisted TCP fast retransmit \\
 \end{tabular}
@@ -33,19 +35,21 @@ I, Thanh Bui of Downing College, being a candidate for Part II of the Computer S
 {\large
 \begin{tabular}{ l p{11.5cm}}
 	Examination:        & \bf Computer Science Tripos --- Part II, June 2019  \\
-	Word Count:         & \bf 11000\footnotemark	 \\
+	Word Count:         & \bf 11386\footnotemark[1] \\ 
+	Final Line Count: & \bf 1700\footnotemark[2] \\ 
 	Project Originator: & Dr Noa Zilberman               \\
 	Supervisor:         & Dr Noa Zilberman             		\\ 
 \end{tabular}
 }
-\footnotetext{This word count was computed using \texttt{texcount -sum -inc -utf8 -sub=chapter diss.tex} for chapters 1--5.
-}
+
+\footnotetext[1]{This word count was computed using \texttt{texcount -sum -inc -utf8 -sub=chapter diss.tex} for chapters 1--5.}
+\footnotetext[2]{Approximated using \texttt{cat <files> | wc -l} for relevant files.}
 
 \section*{Original Aims of the Project}
-The aim of this project is to investigate the feasibility and effectiveness of a programmable data plane in application to Transmission Control Protocol (TCP) congestion control. More specifically, I aim to design, implement and evaluate a programmable switch to recover from TCP packet losses that are not due to congestion. The implementation will be evaluated based on a series of tests, including both software and hardware simulations. A performance evaluation will also be provided.  
+The aim of this project is to investigate the feasibility and effectiveness of a programmable data plane in application to Transmission Control Protocol (TCP) congestion control. More specifically, I aim to design, implement and evaluate using a programmable switch an implementation that will fast retransmit TCP packet losses that are not due to congestion. The implementation will be assessed through a series of simulations, functional system test and performance analysis. A performance evaluation of the design will also be provided.  
 
 \section*{Work Completed}
-Almost all my success criteria were met, with the exception of demonstrating the interoperability of my implementation with a software-based client/application. The architecture was designed, then implemented in P4. The implementation was tested via three different simulations: SDNet simulation, SUME simulation and hardware simulation. A performance evaluation of the design was provided. Two of the extensions were also completed. 
+The project has been successful. All success criteria were met. I designed an architecture, then implemented, using the P4 programming language and the NetFPGA SUME board, a prototype switch that will fast retransmit TCP packet losses that are not due to congestion. The implementation was simulated and passed both block-level and chip-level simulations, and its functionality was tested in hardware. The switch had a reasonable latency compared to a standard switch and achieved $99.9999\%$ throughput running at full speed of 10Gpbs/port. A performance evaluation of the design was provided. Two extensions were also completed. 
 
 \section*{Special Difficulties}
-The implementation stage of the architecture took longer than anticipated due to limitations of SDNet and the P4$\rightarrow$NetFPGA workflow. The current P4$\rightarrow$NetFPGA only supports header processing, without deep packet inspection, while this project used programmable buffering logic, which would require the ability to buffer packets. Hence, the design could not be fully expressed in P4 alone. To circumvent this, I had to learn to use Verilog in order to design a different architecture by adding additional HDL modules into the framework that allow packet buffering. 
+The implementation stage of the architecture took longer than anticipated due to limitations of SDNet and the P4$\rightarrow$NetFPGA workflow. The current P4$\rightarrow$NetFPGA workflow only supports header processing, without deep packet inspection, while this project used programmable buffering logic, which would require the ability to buffer packets. Hence, the design could not be fully expressed in P4 alone. To circumvent this, I had to learn to use Verilog in order to design a different architecture by adding additional HDL modules into the pipeline which allow packet buffering. 
